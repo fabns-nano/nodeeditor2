@@ -6,6 +6,7 @@ namespace QtNodes {
 
 NodeDelegateModel::NodeDelegateModel()
     : _nodeStyle(StyleCollection::nodeStyle())
+    , _processingStatus(NodeProcessingStatus::None)
 {
     // Derived classes can initialize specific style here
 }
@@ -49,6 +50,16 @@ NodeStyle const &NodeDelegateModel::nodeStyle() const
 void NodeDelegateModel::setNodeStyle(NodeStyle const &style)
 {
     _nodeStyle = style;
+}
+
+NodeDelegateModel::NodeProcessingStatus NodeDelegateModel::nodeProcessingStatus() const
+{
+    return _processingStatus;
+}
+
+void NodeDelegateModel::setNodeProcessingStatus(NodeProcessingStatus status)
+{
+    _processingStatus = status;
 }
 
 } // namespace QtNodes
