@@ -29,6 +29,12 @@ public:
 
     virtual ~NodeDelegateModel() = default;
 
+    enum class NodeProcessingStatus
+    {
+        None,
+        Processing,
+    };
+
     /// It is possible to hide caption in GUI
     virtual bool captionVisible() const { return true; }
 
@@ -60,6 +66,10 @@ public:
     NodeStyle const &nodeStyle() const;
 
     void setNodeStyle(NodeStyle const &style);
+
+    NodeProcessingStatus nodeProcessingStatus() const;
+
+    void setNodeProcessingStatus(NodeProcessingStatus status);
 
 public:
     virtual void setInData(std::shared_ptr<NodeData> nodeData, PortIndex const portIndex) = 0;
@@ -128,6 +138,7 @@ Q_SIGNALS:
 
 private:
     NodeStyle _nodeStyle;
+    NodeProcessingStatus _processingStatus{NodeProcessingStatus::None};
 };
 
 } // namespace QtNodes

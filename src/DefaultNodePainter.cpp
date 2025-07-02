@@ -12,6 +12,8 @@
 #include "NodeGraphicsObject.hpp"
 #include "NodeState.hpp"
 #include "StyleCollection.hpp"
+#include "DataFlowGraphModel.hpp"
+#include "NodeDelegateModel.hpp"
 
 namespace QtNodes {
 
@@ -30,6 +32,8 @@ void DefaultNodePainter::paint(QPainter *painter, NodeGraphicsObject &ngo) const
     drawNodeCaption(painter, ngo);
 
     drawEntryLabels(painter, ngo);
+
+    drawProcessingIndicator(painter, ngo);
 
     drawResizeRect(painter, ngo);
 }
@@ -268,6 +272,35 @@ void DefaultNodePainter::drawResizeRect(QPainter *painter, NodeGraphicsObject &n
 
         painter->drawEllipse(geometry.resizeHandleRect(nodeId));
     }
+}
+
+void DefaultNodePainter::drawProcessingIndicator(QPainter *painter, NodeGraphicsObject &ngo) const
+{
+    AbstractGraphModel &model = ngo.graphModel();
+    NodeId const nodeId = ngo.nodeId();
+
+    auto *dfModel = dynamic_cast<DataFlowGraphModel *>(&model);
+    if (!dfModel)
+        return;
+
+    auto *delegate = dfModel->delegateModel<NodeDelegateModel>(nodeId);
+    if (!delegate)
+        return;
+
+    if (delegate->nodeProcessingStatus() != NodeDelegateModel::NodeProcessingStatus::Processing)
+        return;
+
+    AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
+    QSize size = geometry.size(nodeId);
+
+    QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
+    NodeStyle nodeStyle(json.object());
+
+    painter->setBrush(nodeStyle.WarningColor);
+    painter->setPen(Qt::NoPen);
+
+    QRectF r(size.width() - 12.0, 4.0, 8.0, 8.0);
+    painter->drawEllipse(r);
 }
 
 } // namespace QtNodes
