@@ -241,6 +241,14 @@ QVariant DataFlowGraphModel::nodeData(NodeId nodeId, NodeRole role) const
         auto validationState = model->validationState();
         result = QVariant::fromValue(validationState);
     } break;
+
+    case NodeRole::LabelVisible:
+        result = model->labelVisible();
+        break;
+
+    case NodeRole::Label:
+        result = model->label();
+        break;
     }
 
     return result;

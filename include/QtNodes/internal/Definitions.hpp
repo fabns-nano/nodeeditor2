@@ -33,6 +33,8 @@ enum class NodeRole {
     OutPortCount = 9,     ///< `unsigned int`
     Widget = 10,          ///< Optional `QWidget*` or `nullptr`
     ValidationState = 11, ///< Enum NodeValidationState of the node
+    LabelVisible = 12,    ///< `bool` for label visibility.
+    Label = 13,           ///< `QString` for node label.
 };
 Q_ENUM_NS(NodeRole)
 

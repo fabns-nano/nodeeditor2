@@ -63,6 +63,12 @@ public:
     /// Name makes this model unique
     virtual QString name() const = 0;
 
+    /// Nicknames can be assigned to nodes and shown in GUI
+    virtual QString label() const { return QString("Teste"); }
+
+    /// It is possible to hide the nickname in GUI
+    virtual bool labelVisible() const { return true; }
+
     /// Validation State will default to Valid, but you can manipulate it by overriding in an inherited class
     virtual NodeValidationState validationState() const { return _nodeValidationState; }
 
