@@ -309,6 +309,22 @@ bool DataFlowGraphModel::setNodeData(NodeId nodeId, NodeRole role, QVariant valu
     case NodeRole::Widget:
         break;
 
+    case NodeRole::LabelVisible: {
+        if (auto node = delegateModel<NodeDelegateModel>(nodeId); node != nullptr) {
+            node->setLabelVisible(value.toBool());
+            Q_EMIT nodeUpdated(nodeId);
+            result = true;
+        }
+    } break;
+
+    case NodeRole::Label: {
+        if (auto node = delegateModel<NodeDelegateModel>(nodeId); node != nullptr) {
+            node->setLabel(value.toString());
+            Q_EMIT nodeUpdated(nodeId);
+            result = true;
+        }
+    } break;
+
     case NodeRole::ValidationState: {
         if (value.canConvert<NodeValidationState>()) {
             auto state = value.value<NodeValidationState>();

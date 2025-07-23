@@ -24,6 +24,8 @@ NodeGraphicsObject::NodeGraphicsObject(BasicGraphicsScene &scene, NodeId nodeId)
     , _graphModel(scene.graphModel())
     , _nodeState(*this)
     , _proxyWidget(nullptr)
+    , _labelProxy(nullptr)
+    , _labelEditor(nullptr)
 {
     scene.addItem(this);
 
@@ -369,6 +371,30 @@ void NodeGraphicsObject::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 void NodeGraphicsObject::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
+    AbstractNodeGeometry &geometry = nodeScene()->nodeGeometry();
+    QRectF labelRect = geometry.labelRect(_nodeId);
+    labelRect.moveTopLeft(geometry.labelPosition(_nodeId));
+
+    if (labelRect.contains(event->pos())) {
+        if (!_labelProxy) {
+            _labelProxy = new QGraphicsProxyWidget(this);
+            _labelEditor = new QLineEdit(_graphModel.nodeData<QString>(_nodeId, NodeRole::Label));
+            _labelProxy->setWidget(_labelEditor);
+            _labelProxy->setPos(labelRect.topLeft());
+            _labelEditor->setFrame(false);
+            _labelEditor->setFixedWidth(labelRect.width() * 2);
+            _labelEditor->selectAll();
+            connect(_labelEditor, &QLineEdit::editingFinished, [this]() {
+                _graphModel.setNodeData(_nodeId, NodeRole::Label, _labelEditor->text());
+                _labelProxy->deleteLater();
+                _labelProxy = nullptr;
+                _labelEditor = nullptr;
+            });
+        }
+        event->accept();
+        return;
+    }
+
     QGraphicsItem::mouseDoubleClickEvent(event);
 
     Q_EMIT nodeScene()->nodeDoubleClicked(_nodeId);

@@ -6,6 +6,7 @@
 #include "NodeState.hpp"
 
 class QGraphicsProxyWidget;
+class QLineEdit;
 
 namespace QtNodes {
 
@@ -89,5 +90,9 @@ private:
 
     // either nullptr or owned by parent QGraphicsItem
     QGraphicsProxyWidget *_proxyWidget;
+
+    // proxy for editing the label
+    QGraphicsProxyWidget *_labelProxy{nullptr};
+    QLineEdit *_labelEditor{nullptr};
 };
 } // namespace QtNodes

@@ -6,6 +6,7 @@ namespace QtNodes {
 
 NodeDelegateModel::NodeDelegateModel()
     : _nodeStyle(StyleCollection::nodeStyle())
+    , _labelVisible(true)
 {
     // Derived classes can initialize specific style here
 }
@@ -15,13 +16,18 @@ QJsonObject NodeDelegateModel::save() const
     QJsonObject modelJson;
 
     modelJson["model-name"] = name();
+    modelJson["label"] = _label;
+    modelJson["label-visible"] = _labelVisible;
 
     return modelJson;
 }
 
-void NodeDelegateModel::load(QJsonObject const &)
+void NodeDelegateModel::load(QJsonObject const &json)
 {
-    //
+    if (json.contains("label"))
+        _label = json["label"].toString();
+    if (json.contains("label-visible"))
+        _labelVisible = json["label-visible"].toBool();
 }
 
 void NodeDelegateModel::setValidatonState(const NodeValidationState &validationState)

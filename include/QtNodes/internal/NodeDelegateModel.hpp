@@ -66,10 +66,16 @@ public:
     virtual QString name() const = 0;
 
     /// Nicknames can be assigned to nodes and shown in GUI
-    virtual QString label() const { return QString("Teste"); }
+    virtual QString label() const { return _label; }
+
+    /// Sets the nickname shown in GUI
+    virtual void setLabel(QString const &label) { _label = label; }
 
     /// It is possible to hide the nickname in GUI
-    virtual bool labelVisible() const { return true; }
+    virtual bool labelVisible() const { return _labelVisible; }
+
+    /// Sets nickname visibility in GUI
+    virtual void setLabelVisible(bool visible) { _labelVisible = visible; }
 
     /// Validation State will default to Valid, but you can manipulate it by overriding in an inherited class
     virtual NodeValidationState validationState() const { return _nodeValidationState; }
@@ -77,7 +83,7 @@ public:
 public:
     QJsonObject save() const override;
 
-    void load(QJsonObject const &) override;
+    void load(QJsonObject const &json) override;
 
     void setValidatonState(const NodeValidationState &validationState);
 
@@ -162,6 +168,10 @@ private:
     NodeStyle _nodeStyle;
 
     NodeValidationState _nodeValidationState;
+
+    QString _label;
+
+    bool _labelVisible{true};
 };
 
 } // namespace QtNodes
