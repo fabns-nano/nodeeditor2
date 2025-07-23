@@ -230,7 +230,8 @@ void DefaultNodePainter::drawNodeCaption(QPainter *painter, NodeGraphicsObject &
     QString const name = model.nodeData(nodeId, NodeRole::Caption).toString();
 
     QFont f = painter->font();
-    f.setBold(true);
+    f.setBold(!model.nodeData(nodeId, NodeRole::LabelVisible).toBool());
+    f.setItalic(model.nodeData(nodeId, NodeRole::LabelVisible).toBool());
 
     QPointF position = geometry.captionPosition(nodeId);
 
@@ -242,6 +243,7 @@ void DefaultNodePainter::drawNodeCaption(QPainter *painter, NodeGraphicsObject &
     painter->drawText(position, name);
 
     f.setBold(false);
+    f.setItalic(false);
     painter->setFont(f);
 }
 
