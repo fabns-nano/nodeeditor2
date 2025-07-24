@@ -31,6 +31,9 @@ NodeGraphicsObject::NodeGraphicsObject(BasicGraphicsScene &scene, NodeId nodeId)
 
     setFlag(QGraphicsItem::ItemDoesntPropagateOpacityToChildren, true);
     setFlag(QGraphicsItem::ItemIsFocusable, true);
+    setAcceptedMouseButtons(Qt::AllButtons);
+    setAcceptHoverEvents(true);
+    setFlag(QGraphicsItem::ItemIsSelectable, true);
 
     setLockedState();
 
@@ -369,31 +372,111 @@ void NodeGraphicsObject::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     event->accept();
 }
 
+/*
+void NodeGraphicsObject::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    // Verifica se foi o botão direito
+    if (event->button() == Qt::RightButton) {
+        AbstractNodeGeometry &geometry = nodeScene()->nodeGeometry();
+        QRectF labelRect = geometry.labelRect(_nodeId);
+        labelRect.moveTopLeft(geometry.labelPosition(_nodeId));
+
+        if (labelRect.contains(event->pos())) {
+            if (!_labelProxy) {
+                _labelProxy = new QGraphicsProxyWidget(this);
+                _labelEditor = new QLineEdit(
+                    _graphModel.nodeData<QString>(_nodeId, NodeRole::Label));
+                _labelProxy->setWidget(_labelEditor);
+                _labelProxy->setPos(labelRect.topLeft());
+                _labelEditor->setFrame(false);
+                _labelEditor->setFixedWidth(labelRect.width() * 2);
+                _labelEditor->selectAll();
+                connect(_labelEditor, &QLineEdit::editingFinished, [this]() {
+                    _graphModel.setNodeData(_nodeId, NodeRole::Label, _labelEditor->text());
+                    _labelProxy->deleteLater();
+                    _labelProxy = nullptr;
+                    _labelEditor = nullptr;
+                });
+            }
+            event->accept();
+            return;
+        }
+    }
+
+    // Se não for botão direito, mantém o comportamento padrão
+    QGraphicsItem::mousePressEvent(event);
+}
+*/
+
 void NodeGraphicsObject::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     AbstractNodeGeometry &geometry = nodeScene()->nodeGeometry();
     QRectF labelRect = geometry.labelRect(_nodeId);
     labelRect.moveTopLeft(geometry.labelPosition(_nodeId));
 
-    if (labelRect.contains(event->pos())) {
-        if (!_labelProxy) {
-            _labelProxy = new QGraphicsProxyWidget(this);
-            _labelEditor = new QLineEdit(_graphModel.nodeData<QString>(_nodeId, NodeRole::Label));
-            _labelProxy->setWidget(_labelEditor);
-            _labelProxy->setPos(labelRect.topLeft());
-            _labelEditor->setFrame(false);
-            _labelEditor->setFixedWidth(labelRect.width() * 2);
-            _labelEditor->selectAll();
-            connect(_labelEditor, &QLineEdit::editingFinished, [this]() {
-                _graphModel.setNodeData(_nodeId, NodeRole::Label, _labelEditor->text());
-                _labelProxy->deleteLater();
-                _labelProxy = nullptr;
-                _labelEditor = nullptr;
-            });
-        }
-        event->accept();
-        return;
+    if (!_labelProxy) {
+        _labelEditor = new QLineEdit(_graphModel.nodeData<QString>(_nodeId, NodeRole::Label));
+        QJsonDocument json = QJsonDocument::fromVariant(
+            _graphModel.nodeData(_nodeId, NodeRole::Style));
+        NodeStyle nodeStyle(json.object());
+
+        QFont font;
+        font.setBold(true);
+        _labelEditor->setFont(font);
+
+        QPalette palette = _labelEditor->palette();
+        //palette.setColor(QPalette::Base, nodeStyle.GradientColor1);
+        palette.setColor(QPalette::Text, nodeStyle.FontColor);
+        QColor textColor = nodeStyle.SelectedBoundaryColor; // ou qualquer outra cor desejada
+        QString style = QString(R"(
+            QLineEdit {
+                border: 1px solid %1;
+                background-color: transparent;
+                color: white;
+                border-radius: 12px;
+            }
+        )")
+                            .arg(textColor.name());
+
+        _labelEditor->setStyleSheet(style);
+        //_labelEditor->setStyleSheet(R"(
+        //    QLineEdit {
+        //        border: none;
+        //        background-color: transparent;
+        //        color: white;
+        //    }
+        //)");
+
+        _labelEditor->setFrame(false);
+        _labelEditor->setFixedSize(geometry.captionRect(_nodeId).size().toSize());
+        _labelEditor->setAlignment(Qt::AlignCenter);
+        _labelEditor->selectAll();
+        _labelEditor->setFocusPolicy(Qt::StrongFocus);
+
+        _labelProxy = new QGraphicsProxyWidget(this);
+        _labelProxy->setZValue(9999);
+        _labelProxy->setWidget(_labelEditor);
+
+        auto position = geometry.captionRect(_nodeId).topLeft();
+        position.setY(position.y() - 2);
+
+        _labelProxy->setPos(position);
+        _labelProxy->setVisible(true);
+
+        _labelEditor->setFocus();
+        _labelEditor->activateWindow();
+
+        connect(_labelEditor, &QLineEdit::editingFinished, [this]() {
+            QString newText = _labelEditor->text();
+            _graphModel.setNodeData(_nodeId, NodeRole::Label, newText);
+            _graphModel.setNodeData(_nodeId, NodeRole::LabelVisible, true);
+            _labelProxy->deleteLater();
+            _labelProxy = nullptr;
+            _labelEditor = nullptr;
+        });
     }
+
+    event->accept();
 
     QGraphicsItem::mouseDoubleClickEvent(event);
 
