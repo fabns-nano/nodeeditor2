@@ -246,11 +246,11 @@ QVariant DataFlowGraphModel::nodeData(NodeId nodeId, NodeRole role) const
     } break;
 
     case NodeRole::LabelVisible:
-        result = _labelsVisible[nodeId];
+        result = _labelsVisible.at(nodeId);
         break;
 
     case NodeRole::Label:
-        result = _labels[nodeId];
+        result = _labels.at(nodeId);
         break;
     }
 
@@ -552,9 +552,9 @@ void DataFlowGraphModel::loadNode(QJsonObject const &nodeJson)
         setNodeData(restoredNodeId, NodeRole::Position, pos);
 
         _labels[restoredNodeId] = nodeJson["label"].toString(model->label());
-        _labelsVisible[restoredNodeId] =
-            nodeJson.contains("labelVisible") ? nodeJson["labelVisible"].toBool()
-                                              : model->labelVisible();
+        _labelsVisible[restoredNodeId] = nodeJson.contains("labelVisible")
+                                             ? nodeJson["labelVisible"].toBool()
+                                             : model->labelVisible();
 
         _models[restoredNodeId]->load(internalDataJson);
     } else {
