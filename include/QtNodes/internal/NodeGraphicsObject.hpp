@@ -53,6 +53,8 @@ public:
 
     void updateQWidgetEmbedPos();
 
+    void editLabel();
+
 protected:
     void paint(QPainter *painter,
                QStyleOptionGraphicsItem const *option,
@@ -75,6 +77,8 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
 
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) override;
+
+    void keyPressEvent(QKeyEvent *event) override;
 
 private:
     void embedQWidget();
