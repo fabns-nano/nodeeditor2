@@ -8,6 +8,8 @@
 #include "DefaultNodePainter.hpp"
 #include "DefaultVerticalNodeGeometry.hpp"
 #include "NodeGraphicsObject.hpp"
+#include "DataFlowGraphModel.hpp"
+#include "NodeDelegateModel.hpp"
 
 #include <QUndoStack>
 
@@ -253,6 +255,13 @@ QMenu *BasicGraphicsScene::createFreezeMenu(QPointF const scenePos)
                             }
                         }
                     }
+
+                    if (auto *dfModel = dynamic_cast<DataFlowGraphModel *>(&graphModel())) {
+                        if (auto *delegate =
+                                dfModel->delegateModel<NodeDelegateModel>(n->nodeId())) {
+                            delegate->setFrozenState(true);
+                        }
+                    }
                 }
             }
 
@@ -277,6 +286,13 @@ QMenu *BasicGraphicsScene::createFreezeMenu(QPointF const scenePos)
                                 cgo->connectionState().setFrozen(false);
                                 cgo->update();
                             }
+                        }
+                    }
+
+                    if (auto *dfModel = dynamic_cast<DataFlowGraphModel *>(&graphModel())) {
+                        if (auto *delegate =
+                                dfModel->delegateModel<NodeDelegateModel>(n->nodeId())) {
+                            delegate->setFrozenState(false);
                         }
                     }
                 }
