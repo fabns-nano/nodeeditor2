@@ -88,6 +88,9 @@ public:
         return _processingStatus._status;
     }
 
+    /// Progress is used in GUI
+    virtual QString progressValue() const = 0;
+
 public:
     QJsonObject save() const override;
 
