@@ -18,7 +18,7 @@ NODE_EDITOR_PUBLIC Q_NAMESPACE
 Q_NAMESPACE_EXPORT(NODE_EDITOR_PUBLIC)
 #endif
 
-    /**
+/**
  * Constants used for fetching QVariant data from GraphModel.
  */
 enum class NodeRole {
@@ -35,7 +35,7 @@ enum class NodeRole {
     ValidationState = 11,  ///< Enum NodeValidationState of the node
     ProcessingStatus = 12, ///< Enum NodeProcessingStatus of the node
     ProgressValue = 13,    ///< 'QString' for the progress value
-};
+    };
 Q_ENUM_NS(NodeRole)
 
 /**
