@@ -11,10 +11,6 @@
 #include "NodeStyle.hpp"
 #include "Serializable.hpp"
 
-#include <QtWidgets/QWidget>
-
-#include <memory>
-
 namespace QtNodes {
 
 /**
@@ -79,7 +75,6 @@ public:
 
     void setValidatonState(const NodeValidationState &validationState);
 
-public:
     virtual unsigned int nPorts(PortType portType) const = 0;
 
     virtual NodeDataType dataType(PortType portType, PortIndex portIndex) const = 0;
