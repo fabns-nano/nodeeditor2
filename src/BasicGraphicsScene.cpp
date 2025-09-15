@@ -8,9 +8,14 @@
 #include "DefaultNodePainter.hpp"
 #include "DefaultVerticalNodeGeometry.hpp"
 #include "NodeGraphicsObject.hpp"
+#include "GraphicsView.hpp"
 
 #include <QUndoStack>
 
+#include <QHeaderView>
+#include <QLineEdit>
+#include <QTreeWidget>
+#include <QWidgetAction>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QGraphicsSceneMoveEvent>
 
@@ -37,6 +42,7 @@ BasicGraphicsScene::BasicGraphicsScene(AbstractGraphModel &graphModel, QObject *
     , _nodeGeometry(std::make_unique<DefaultHorizontalNodeGeometry>(_graphModel))
     , _nodePainter(std::make_unique<DefaultNodePainter>())
     , _connectionPainter(std::make_unique<DefaultConnectionPainter>())
+    , _graphicsView(std::make_unique<GraphicsView>())
     , _nodeDrag(false)
     , _undoStack(new QUndoStack(this))
     , _orientation(Qt::Horizontal)
@@ -196,6 +202,70 @@ QMenu *BasicGraphicsScene::createSceneMenu(QPointF const scenePos)
 {
     Q_UNUSED(scenePos);
     return nullptr;
+}
+
+QMenu *BasicGraphicsScene::createZoomMenu(QPointF const scenePos)
+{
+    QMenu *menu = new QMenu();
+
+    auto *txtBox = new QLineEdit(menu);
+    txtBox->setPlaceholderText(QStringLiteral("Filter"));
+    txtBox->setClearButtonEnabled(true);
+
+    auto *txtBoxAction = new QWidgetAction(menu);
+    txtBoxAction->setDefaultWidget(txtBox);
+    menu->addAction(txtBoxAction);
+
+    QTreeWidget *treeView = new QTreeWidget(menu);
+    treeView->header()->close();
+
+    treeView->setMaximumHeight(100);
+    treeView->setMaximumWidth(150);
+
+    auto *treeViewAction = new QWidgetAction(menu);
+    treeViewAction->setDefaultWidget(treeView);
+    menu->addAction(treeViewAction);
+
+    auto freezeItem = new QTreeWidgetItem(treeView);
+    freezeItem->setText(0, "Zoom Fit All");
+
+    auto unfreezeItem = new QTreeWidgetItem(treeView);
+    unfreezeItem->setText(0, "Zoom Fit Selected");
+
+    treeView->expandAll();
+
+    connect(treeView, &QTreeWidget::itemClicked, [this, menu, scenePos](QTreeWidgetItem *item, int) {
+        if (item->text(0) == "Zoom Fit All") {
+            //ZoomFit
+            //Q_EMIT zoomFitAllClicked();
+
+            menu->close();
+            return;
+        }
+        if (item->text(0) == "Zoom Fit Selected") {
+            //ZoomFit
+            //Q_EMIT zoomFitSelectedClicked();
+
+            menu->close();
+            return;
+        }
+    });
+
+    // Filtro
+    connect(txtBox, &QLineEdit::textChanged, [treeView](const QString &text) {
+        QTreeWidgetItemIterator it(treeView);
+        while (*it) {
+            auto modelName = (*it)->text(0);
+            const bool match = (modelName.contains(text, Qt::CaseInsensitive));
+            (*it)->setHidden(!match);
+            ++it;
+        }
+    });
+
+    txtBox->setFocus();
+    menu->setAttribute(Qt::WA_DeleteOnClose);
+
+    return menu;
 }
 
 void BasicGraphicsScene::traverseGraphAndPopulateGraphicsObjects()
