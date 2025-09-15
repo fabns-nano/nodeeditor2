@@ -28,7 +28,6 @@ class AbstractNodePainter;
 class ConnectionGraphicsObject;
 class NodeGraphicsObject;
 class NodeStyle;
-class GraphicsView;
 
 /// An instance of QGraphicsScene, holds connections and nodes.
 class NODE_EDITOR_PUBLIC BasicGraphicsScene : public QGraphicsScene
@@ -170,7 +169,6 @@ private:
     std::unique_ptr<AbstractNodeGeometry> _nodeGeometry;
     std::unique_ptr<AbstractNodePainter> _nodePainter;
     std::unique_ptr<AbstractConnectionPainter> _connectionPainter;
-    std::unique_ptr<GraphicsView> _graphicsView;
     bool _nodeDrag;
     QUndoStack *_undoStack;
     Qt::Orientation _orientation;

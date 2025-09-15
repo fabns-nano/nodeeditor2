@@ -147,6 +147,10 @@ void GraphicsView::setScene(BasicGraphicsScene *scene)
     auto redoAction = scene->undoStack().createRedoAction(this, tr("&Redo"));
     redoAction->setShortcuts(QKeySequence::Redo);
     addAction(redoAction);
+
+    /// Connections to context menu funcionality
+    connect(scene, &BasicGraphicsScene::zoomFitAllClicked, this, &GraphicsView::zoomFitAll);
+    connect(scene, &BasicGraphicsScene::zoomFitSelectedClicked, this, &GraphicsView::zoomFitSelected);
 }
 
 void GraphicsView::centerScene()
@@ -413,7 +417,6 @@ QPointF GraphicsView::scenePastePosition()
 void GraphicsView::zoomFitAll()
 {
     fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
-    //clipCurrentScale();
 }
 
 void GraphicsView::zoomFitSelected()
@@ -428,6 +431,5 @@ void GraphicsView::zoomFitSelected()
         }
 
         fitInView(unitedBoundingRect, Qt::KeepAspectRatio);
-        //clipCurrentScale();
     }
 }

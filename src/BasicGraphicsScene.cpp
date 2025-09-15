@@ -8,7 +8,6 @@
 #include "DefaultNodePainter.hpp"
 #include "DefaultVerticalNodeGeometry.hpp"
 #include "NodeGraphicsObject.hpp"
-#include "GraphicsView.hpp"
 
 #include <QUndoStack>
 
@@ -42,7 +41,6 @@ BasicGraphicsScene::BasicGraphicsScene(AbstractGraphModel &graphModel, QObject *
     , _nodeGeometry(std::make_unique<DefaultHorizontalNodeGeometry>(_graphModel))
     , _nodePainter(std::make_unique<DefaultNodePainter>())
     , _connectionPainter(std::make_unique<DefaultConnectionPainter>())
-    , _graphicsView(std::make_unique<GraphicsView>())
     , _nodeDrag(false)
     , _undoStack(new QUndoStack(this))
     , _orientation(Qt::Horizontal)
@@ -236,22 +234,20 @@ QMenu *BasicGraphicsScene::createZoomMenu(QPointF const scenePos)
 
     connect(treeView, &QTreeWidget::itemClicked, [this, menu, scenePos](QTreeWidgetItem *item, int) {
         if (item->text(0) == "Zoom Fit All") {
-            //ZoomFit
-            //Q_EMIT zoomFitAllClicked();
+            Q_EMIT zoomFitAllClicked();
 
             menu->close();
             return;
         }
         if (item->text(0) == "Zoom Fit Selected") {
-            //ZoomFit
-            //Q_EMIT zoomFitSelectedClicked();
+            Q_EMIT zoomFitSelectedClicked();
 
             menu->close();
             return;
         }
     });
 
-    // Filtro
+    // Filter
     connect(txtBox, &QLineEdit::textChanged, [treeView](const QString &text) {
         QTreeWidgetItemIterator it(treeView);
         while (*it) {
