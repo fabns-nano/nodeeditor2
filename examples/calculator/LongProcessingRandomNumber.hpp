@@ -16,16 +16,19 @@ class RandomNumberModel : public MathOperationDataModel
 {
 public:
     RandomNumberModel() {
+        this->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Empty);
+
         QObject::connect(this, &NodeDelegateModel::computingStarted, this, [this]() {
-            this->setNodeProcessingStatus(
-                    QtNodes::NodeProcessingStatus::Status::Processing);
+            if (_number1.lock() && _number2.lock()) {
+                this->setNodeProcessingStatus(
+                    QtNodes::NodeProcessingStatus::Processing);
+            }
 
             emit requestNodeUpdate();
-
         });
         QObject::connect(this, &NodeDelegateModel::computingFinished, this, [this]() {
             this->setNodeProcessingStatus(
-                QtNodes::NodeProcessingStatus::Status::Updated);
+                QtNodes::NodeProcessingStatus::Updated);
 
             emit requestNodeUpdate();
         });
@@ -57,7 +60,8 @@ private:
                     double b = n2->number();
 
                     if (a > b) {
-                        this->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Status::Failed);
+                        setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Failed);
+
                         emit requestNodeUpdate();
                         return;
                     }

@@ -34,19 +34,14 @@ struct NodeValidationState
 /**
  * Describes the node status, depending on its current situation
  */
-struct NodeProcessingStatus
-{
-    enum class Status : int {
-        NoStatus = 0,   ///
-        Updated = 1,    ///
-        Processing = 2, ///
-        Pending = 3,    ///
-        Empty = 4,      ///
-        Failed = 5,     ///
-        Partial = 6,    ///
-    };
-
-    Status _status{Status::NoStatus};
+enum class NodeProcessingStatus : int {
+    NoStatus = 0,   ///
+    Updated = 1,    ///
+    Processing = 2, ///
+    Pending = 3,    ///
+    Empty = 4,      ///
+    Failed = 5,     ///
+    Partial = 6,    ///
 };
 
 class StyleCollection;
@@ -68,14 +63,14 @@ public:
 
     virtual ~NodeDelegateModel() = default;
 
+    /// It is possible to hide caption in GUI
+    virtual bool captionVisible() const { return true; }
+
     /// Name makes this model unique
     virtual QString name() const = 0;
 
     /// Caption is used in GUI
     virtual QString caption() const = 0;
-
-    /// It is possible to hide caption in GUI
-    virtual bool captionVisible() const { return true; }
 
     /// Port caption is used in GUI to label individual ports
     virtual QString portCaption(PortType, PortIndex) const { return QString(); }
@@ -87,10 +82,7 @@ public:
     virtual NodeValidationState validationState() const { return _nodeValidationState; }
 
     /// Returns the curent processing status
-    virtual NodeProcessingStatus::Status processingStatus() const
-    {
-        return _processingStatus._status;
-    }
+    virtual NodeProcessingStatus processingStatus() const { return _processingStatus; }
 
     /// Progress is used in GUI
     virtual QString progressValue() const = 0;
@@ -101,7 +93,7 @@ public:
 
     void setValidationState(const NodeValidationState &validationState);
 
-    void setNodeProcessingStatus(NodeProcessingStatus::Status status);
+    void setNodeProcessingStatus(NodeProcessingStatus status);
 
     virtual unsigned int nPorts(PortType portType) const = 0;
 
@@ -113,6 +105,7 @@ public:
 
     void setNodeStyle(NodeStyle const &style);
 
+public:
     virtual void setInData(std::shared_ptr<NodeData> nodeData, PortIndex const portIndex) = 0;
 
     virtual std::shared_ptr<NodeData> outData(PortIndex const port) = 0;
