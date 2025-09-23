@@ -85,7 +85,7 @@ public:
     virtual NodeProcessingStatus processingStatus() const { return _processingStatus; }
 
     /// Progress is used in GUI
-    virtual QString progressValue() const = 0;
+    virtual QString progressValue() const { return _progressValue; }
 
     QJsonObject save() const override;
 
@@ -104,6 +104,8 @@ public:
     NodeStyle const &nodeStyle() const;
 
     void setNodeStyle(NodeStyle const &style);
+
+    void setProgressValue(QString new_progress) { _progressValue = new_progress; }
 
 public:
     virtual void setInData(std::shared_ptr<NodeData> nodeData, PortIndex const portIndex) = 0;
@@ -180,6 +182,8 @@ private:
     NodeValidationState _nodeValidationState;
 
     NodeProcessingStatus _processingStatus;
+
+    QString _progressValue{QString()};
 };
 
 } // namespace QtNodes
