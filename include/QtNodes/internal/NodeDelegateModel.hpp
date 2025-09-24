@@ -189,3 +189,4 @@ private:
 } // namespace QtNodes
 
 Q_DECLARE_METATYPE(QtNodes::NodeValidationState)
+Q_DECLARE_METATYPE(QtNodes::NodeProcessingStatus)
