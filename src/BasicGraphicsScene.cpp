@@ -204,6 +204,8 @@ QMenu *BasicGraphicsScene::createSceneMenu(QPointF const scenePos)
 
 QMenu *BasicGraphicsScene::createZoomMenu(QPointF const scenePos)
 {
+    Q_UNUSED(scenePos);
+
     QMenu *menu = new QMenu();
 
     auto *txtBox = new QLineEdit(menu);
@@ -232,7 +234,7 @@ QMenu *BasicGraphicsScene::createZoomMenu(QPointF const scenePos)
 
     treeView->expandAll();
 
-    connect(treeView, &QTreeWidget::itemClicked, [this, menu, scenePos](QTreeWidgetItem *item, int) {
+    connect(treeView, &QTreeWidget::itemClicked, [this, menu](QTreeWidgetItem *item, int) {
         if (item->text(0) == "Zoom Fit All") {
             Q_EMIT zoomFitAllClicked();
 
