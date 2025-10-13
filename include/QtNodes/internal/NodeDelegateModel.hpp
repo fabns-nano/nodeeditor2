@@ -19,9 +19,9 @@ namespace QtNodes {
 struct NodeValidationState
 {
     enum class State : int {
-        Valid = 0,      ///< All required inputs are present and correct.
-        Warning = 1,    ///< Some inputs are missing or questionable, processing may be unreliable.
-        Error = 2,      ///< Inputs or settings are invalid, preventing successful computation.
+        Valid = 0,   ///< All required inputs are present and correct.
+        Warning = 1, ///< Some inputs are missing or questionable, processing may be unreliable.
+        Error = 2,   ///< Inputs or settings are invalid, preventing successful computation.
     };
     bool isValid() { return _state == State::Valid; };
     QString const message() { return _stateMessage; }
@@ -39,7 +39,9 @@ class StyleCollection;
  * AbstractGraphModel.
  * This class is the same what has been called NodeDataModel before v3.
  */
-class NODE_EDITOR_PUBLIC NodeDelegateModel : public QObject, public Serializable
+class NODE_EDITOR_PUBLIC NodeDelegateModel
+    : public QObject
+    , public Serializable
 {
     Q_OBJECT
 
@@ -73,6 +75,7 @@ public:
 
     void setValidatonState(const NodeValidationState &validationState);
 
+public:
     virtual unsigned int nPorts(PortType portType) const = 0;
 
     virtual NodeDataType dataType(PortType portType, PortIndex portIndex) const = 0;
@@ -80,6 +83,7 @@ public:
     virtual ConnectionPolicy portConnectionPolicy(PortType, PortIndex) const;
 
     NodeStyle const &nodeStyle() const;
+
     void setNodeStyle(NodeStyle const &style);
 
     virtual void setInData(std::shared_ptr<NodeData> nodeData, PortIndex const portIndex) = 0;
