@@ -544,6 +544,81 @@ void BasicGraphicsScene::removeNodeFromGroup(NodeId nodeId)
     nodeIt->second->lock(false);
 }
 
+std::unordered_map<QUuid, QUuid> BasicGraphicsScene::loadItems(const QByteArray &data,
+                                                               QPointF pastePos,
+                                                               bool usePastePos)
+{
+    QJsonObject const jsonDocument = QJsonDocument::fromJson(data).object();
+
+    // maps the stored (old) node UIDs to their new assigned UIDs
+    std::unordered_map<QUuid, QUuid> IDMap{};
+
+    QPointF offset;
+    bool offsetInitialized{false};
+    clearSelection();
+
+    QJsonArray groupsJsonArray = jsonDocument["groups"].toArray();
+    for (const auto &group : groupsJsonArray) {
+        auto [groupWeakPtr, groupIDsMap] = restoreGroup(group.toObject());
+        IDMap.merge(groupIDsMap);
+        if (auto groupPtr = groupWeakPtr.lock(); groupPtr) {
+            auto &ggoRef = groupPtr->groupGraphicsObject();
+            if (usePastePos && !offsetInitialized) {
+                offset = pastePos - ggoRef.pos();
+                offsetInitialized = true;
+            }
+            if (usePastePos) {
+                ggoRef.moveNodes(offset);
+            }
+            ggoRef.moveConnections();
+            ggoRef.setSelected(true);
+        }
+    }
+    QJsonArray nodesJsonArray = jsonDocument["nodes"].toArray();
+    for (QJsonValueRef node : nodesJsonArray) {
+        auto nodeObj = node.toObject();
+        auto &nodeRef = loadNodeToMap(nodeObj, false);
+
+        NodeId oldNodeId{static_cast<NodeId>(nodeObj["id"].toInt())};
+        NodeId newNodeId{nodeRef.nodeId()};
+        QUuid oldId = encodeNodeId(oldNodeId);
+        QUuid newId = encodeNodeId(newNodeId);
+        IDMap.insert(std::make_pair(oldId, newId));
+
+        if (usePastePos && !offsetInitialized) {
+            offset = pastePos - nodeRef.pos();
+            offsetInitialized = true;
+        }
+        if (usePastePos) {
+            nodeRef.moveBy(offset.x(), offset.y());
+        }
+        nodeRef.moveConnections();
+        nodeRef.setSelected(true);
+    }
+
+    QJsonArray connectionJsonArray = jsonDocument["connections"].toArray();
+    for (QJsonValueRef connection : connectionJsonArray) {
+        auto nodeIdMap = convertMap(IDMap);
+        loadConnectionToMap(connection.toObject(), nodeIdMap);
+        ConnectionId connId = fromJson(connection.toObject());
+
+        auto it = _connectionGraphicsObjects.find(connId);
+        if (it != _connectionGraphicsObjects.end()) {
+            UniqueConnectionGraphicsObject &obj = it->second;
+            obj->setSelected(true);
+        }
+    }
+
+    return IDMap;
+}
+
+std::unordered_map<QUuid, QUuid> BasicGraphicsScene::loadFromMemory(const QByteArray &data)
+{
+    std::unordered_map<QUuid, QUuid> map = loadItems(data, QPointF(), false);
+    clearSelection();
+    return map;
+}
+
 std::weak_ptr<QtNodes::NodeGroup> BasicGraphicsScene::createGroupFromSelection(QString groupName)
 {
     if (!_groupingEnabled)
