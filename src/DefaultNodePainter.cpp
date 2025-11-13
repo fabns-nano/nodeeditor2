@@ -308,13 +308,24 @@ void DefaultNodePainter::drawProcessingIndicator(QPainter *painter, NodeGraphics
 
     AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
 
+    QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
+    NodeStyle nodeStyle(json.object());
+
     ngo.updateStatusIconSize();
     QSize size = geometry.size(nodeId);
 
     QIcon icon = ngo.processingStatusIcon();
     QPixmap pixmap = icon.pixmap(64);
 
-    QRect r(size.width() - 28.0, size.height() - 28.0, 20.0, 20.0);
+    QPointF offset = nodeStyle.ProcessingIndicatorOffset;
+    QRect r;
+    if (nodeStyle.ProcessingIndicatorPosition == NodeStyle::BottomRight) {
+        r.setTopLeft(QPoint(size.width() - offset.x(), size.height() - offset.y()));
+    } else {
+        r.setTopLeft(QPoint(offset.x(), size.height() - offset.y()));
+    }
+    r.setSize(QSize(20.0, 20.0));
+
     painter->drawPixmap(r, pixmap);
 }
 

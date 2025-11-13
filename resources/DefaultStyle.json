@@ -26,7 +26,10 @@
 
     "ConnectionPointDiameter": 8.0,
 
-    "Opacity": 0.8
+    "Opacity": 0.8,
+
+    "ProcessingIndicatorPosition": 1,
+    "ProcessingIndicatorOffset": [28.0, 28.0]
   },
   "ConnectionStyle": {
     "ConstructionColor": "gray",

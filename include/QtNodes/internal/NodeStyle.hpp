@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtGui/QColor>
+#include <QPointF>
 
 #include "Export.hpp"
 #include "Style.hpp"
@@ -9,6 +10,13 @@ namespace QtNodes {
 
 class NODE_EDITOR_PUBLIC NodeStyle : public Style
 {
+public:
+    enum IndicatorPosition
+    {
+        BottomLeft,
+        BottomRight
+    };
+
 public:
     NodeStyle();
 
@@ -51,5 +59,8 @@ public:
     float ConnectionPointDiameter;
 
     float Opacity;
+
+    IndicatorPosition ProcessingIndicatorPosition;
+    QPointF ProcessingIndicatorOffset;
 };
 } // namespace QtNodes

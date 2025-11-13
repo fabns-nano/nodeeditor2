@@ -99,6 +99,39 @@ void NodeStyle::setNodeStyle(QString jsonText)
             values[#variable] = variable; \
     }
 
+#define NODE_STYLE_READ_POINTF(values, variable) \
+    { \
+        auto valueRef = values[#variable]; \
+        NODE_STYLE_CHECK_UNDEFINED_VALUE(valueRef, variable) \
+        if (valueRef.isArray()) { \
+            auto pointArray = valueRef.toArray(); \
+            double x, y; \
+            x = pointArray[0].toDouble(); \
+            y = pointArray[1].toDouble(); \
+            variable = QPointF(x, y); \
+        } \
+    }
+
+#define NODE_STYLE_WRITE_POINTF(values, variable) \
+    { \
+        QJsonArray pointArray; \
+        pointArray.append(variable.x()); \
+        pointArray.append(variable.y()); \
+        values[#variable] = pointArray; \
+    }
+
+#define NODE_STYLE_READ_ENUM(values, variable, EnumType) \
+    { \
+        auto valueRef = values[#variable]; \
+        NODE_STYLE_CHECK_UNDEFINED_VALUE(valueRef, variable) \
+        variable = static_cast<EnumType>(valueRef.toInt()); \
+    }
+
+#define NODE_STYLE_WRITE_ENUM(values, variable) \
+    { \
+        values[#variable] = static_cast<int>(variable); \
+    }
+
 void NodeStyle::loadJson(QJsonObject const &json)
 {
     QJsonValue nodeStyleValues = json["NodeStyle"];
@@ -125,6 +158,9 @@ void NodeStyle::loadJson(QJsonObject const &json)
     NODE_STYLE_READ_FLOAT(obj, ConnectionPointDiameter);
 
     NODE_STYLE_READ_FLOAT(obj, Opacity);
+
+    NODE_STYLE_READ_ENUM(obj, ProcessingIndicatorPosition, IndicatorPosition);
+    NODE_STYLE_READ_POINTF(obj, ProcessingIndicatorOffset);
 }
 
 QJsonObject NodeStyle::toJson() const
@@ -151,6 +187,9 @@ QJsonObject NodeStyle::toJson() const
     NODE_STYLE_WRITE_FLOAT(obj, ConnectionPointDiameter);
 
     NODE_STYLE_WRITE_FLOAT(obj, Opacity);
+
+    NODE_STYLE_WRITE_ENUM(obj, ProcessingIndicatorPosition);
+    NODE_STYLE_WRITE_POINTF(obj, ProcessingIndicatorOffset);
 
     QJsonObject root;
     root["NodeStyle"] = obj;
