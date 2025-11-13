@@ -53,13 +53,17 @@ public:
 
     void updateQWidgetEmbedPos();
 
-    void updateStatusIconSize() const;
+    void setUpdatedStatusIcon(const QPixmap &pixmap);
 
-    const QIcon processingStatusIcon() const;
+    void setProcessingStatusIcon(const QPixmap &pixmap);
 
-    QRect statusIconRect() const;
+    void setPendingStatusIcon(const QPixmap &pixmap);
 
-    QSize statusIconSize() const;
+    void setInvalidStatusIcon(const QPixmap &pixmap);
+
+    void setEmptyStatusIcon(const QPixmap &pixmap);
+
+    void setPartialStatusIcon(const QPixmap &pixmap);
 
 protected:
     void paint(QPainter *painter,
@@ -80,6 +84,7 @@ protected:
 private:
     void embedQWidget();
     void setLockedState();
+    void setStatusIcon(QIcon &statusIcon, const QPixmap &pixmap);
 
 private:
     NodeId _nodeId;
@@ -90,16 +95,5 @@ private:
 
     // either nullptr or owned by parent QGraphicsItem
     QGraphicsProxyWidget *_proxyWidget;
-
-    mutable bool _statusIconActive;
-
-    mutable QSize _statusIconSize;
-
-    const QIcon _statusUpdated{"://status_icons/updated.svg"};
-    const QIcon _statusProcessing{"://status_icons/processing.svg"};
-    const QIcon _statusPending{"://status_icons/pending.svg"};
-    const QIcon _statusInvalid{"://status_icons/failed.svg"};
-    const QIcon _statusEmpty{"://status_icons/empty.svg"};
-    const QIcon _statusPartial{"://status_icons/partial.svg"};
 };
 } // namespace QtNodes

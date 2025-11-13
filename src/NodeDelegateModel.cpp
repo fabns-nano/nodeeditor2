@@ -56,14 +56,26 @@ void NodeDelegateModel::setNodeStyle(NodeStyle const &style)
     _nodeStyle = style;
 }
 
-void NodeDelegateModel::setProcessingIconStyle(ProcessingIconStyle placement)
+QIcon NodeDelegateModel::processingStatusIcon() const
 {
-    _processingIconStyle = placement;
-}
+    switch (_processingStatus) {
+    case NodeProcessingStatus::NoStatus:
+        return {};
+    case NodeProcessingStatus::Updated:
+        return _nodeStyle.statusUpdated;
+    case NodeProcessingStatus::Processing:
+        return _nodeStyle.statusProcessing;
+    case NodeProcessingStatus::Pending:
+        return _nodeStyle.statusPending;
+    case NodeProcessingStatus::Empty:
+        return _nodeStyle.statusEmpty;
+    case NodeProcessingStatus::Failed:
+        return _nodeStyle.statusInvalid;
+    case NodeProcessingStatus::Partial:
+        return _nodeStyle.statusPartial;
+    }
 
-ProcessingIconStyle NodeDelegateModel::processingIconStyle() const
-{
-    return _processingIconStyle;
+    return {};
 }
 
 void NodeDelegateModel::setNodeProcessingStatus(NodeProcessingStatus status)
