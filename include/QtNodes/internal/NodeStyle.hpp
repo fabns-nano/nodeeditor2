@@ -24,6 +24,7 @@ struct ProcessingIconStyle
     ProcessingIconPos _pos{ProcessingIconPos::BottomRight};
     double _size{20.0};
     double _margin{8.0};
+    int _resolution{64};
 };
 
 enum class NodeProcessingStatus : int;

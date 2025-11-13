@@ -53,18 +53,6 @@ public:
 
     void updateQWidgetEmbedPos();
 
-    void setUpdatedStatusIcon(const QPixmap &pixmap);
-
-    void setProcessingStatusIcon(const QPixmap &pixmap);
-
-    void setPendingStatusIcon(const QPixmap &pixmap);
-
-    void setInvalidStatusIcon(const QPixmap &pixmap);
-
-    void setEmptyStatusIcon(const QPixmap &pixmap);
-
-    void setPartialStatusIcon(const QPixmap &pixmap);
-
 protected:
     void paint(QPainter *painter,
                QStyleOptionGraphicsItem const *option,

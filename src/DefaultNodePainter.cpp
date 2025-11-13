@@ -310,10 +310,8 @@ void DefaultNodePainter::drawProcessingIndicator(QPainter *painter, NodeGraphics
 
     QSize size = geometry.size(nodeId);
 
-    QIcon icon = delegate->processingStatusIcon();
+    QPixmap pixmap = delegate->processingStatusIcon();
     NodeStyle nodeStyle = delegate->nodeStyle();
-
-    QPixmap pixmap = icon.pixmap(64);
 
     ProcessingIconStyle iconStyle = nodeStyle.processingIconStyle;
 
