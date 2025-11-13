@@ -129,12 +129,6 @@ void NodeGraphicsObject::setLockedState()
     setFlag(QGraphicsItem::ItemSendsScenePositionChanges, !locked);
 }
 
-void NodeGraphicsObject::setStatusIcon(QIcon &statusIcon, const QPixmap &pixmap)
-{
-    statusIcon = QIcon(pixmap);
-    update();
-}
-
 QRectF NodeGraphicsObject::boundingRect() const
 {
     AbstractNodeGeometry &geometry = nodeScene()->nodeGeometry();

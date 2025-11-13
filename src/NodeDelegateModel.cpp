@@ -89,14 +89,19 @@ void NodeDelegateModel::setStatusIcon(NodeProcessingStatus status, const QPixmap
         break;
     case NodeProcessingStatus::Processing:
         _nodeStyle.statusProcessing = QIcon(pixmap);
+        break;
     case NodeProcessingStatus::Pending:
         _nodeStyle.statusPending = QIcon(pixmap);
+        break;
     case NodeProcessingStatus::Empty:
         _nodeStyle.statusEmpty = QIcon(pixmap);
+        break;
     case NodeProcessingStatus::Failed:
         _nodeStyle.statusInvalid = QIcon(pixmap);
+        break;
     case NodeProcessingStatus::Partial:
         _nodeStyle.statusPartial = QIcon(pixmap);
+        break;
     }
 }
 

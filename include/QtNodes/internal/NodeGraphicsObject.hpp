@@ -72,7 +72,6 @@ protected:
 private:
     void embedQWidget();
     void setLockedState();
-    void setStatusIcon(QIcon &statusIcon, const QPixmap &pixmap);
 
 private:
     NodeId _nodeId;

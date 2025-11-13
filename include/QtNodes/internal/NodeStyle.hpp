@@ -27,8 +27,6 @@ struct ProcessingIconStyle
     int _resolution{64};
 };
 
-enum class NodeProcessingStatus : int;
-
 class NODE_EDITOR_PUBLIC NodeStyle : public Style
 {
 public:
@@ -80,6 +78,7 @@ public:
     QIcon statusInvalid{QStringLiteral("://status_icons/failed.svg")};
     QIcon statusEmpty{QStringLiteral("://status_icons/empty.svg")};
     QIcon statusPartial{QStringLiteral("://status_icons/partial.svg")};
+
     ProcessingIconStyle processingIconStyle{};
 };
 } // namespace QtNodes
