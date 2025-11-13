@@ -20,7 +20,6 @@ ImageLoaderModel::ImageLoaderModel()
     _label->setMaximumSize(500, 300);
 
     _label->installEventFilter(this);
-    setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Updated);
 }
 
 unsigned int ImageLoaderModel::nPorts(PortType portType) const
