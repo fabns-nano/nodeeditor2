@@ -9,6 +9,7 @@
 #include "Export.hpp"
 #include "NodeData.hpp"
 #include "NodeStyle.hpp"
+#include <QtGui/QColor>
 #include "Serializable.hpp"
 
 namespace QtNodes {
@@ -31,6 +32,19 @@ struct NodeValidationState
     QString _stateMessage{""};
 };
 
+/**
+ * Describes the node status, depending on its current situation
+ */
+enum class NodeProcessingStatus : int {
+    NoStatus = 0,   ///
+    Updated = 1,    ///
+    Processing = 2, ///
+    Pending = 3,    ///
+    Empty = 4,      ///
+    Failed = 5,     ///
+    Partial = 6,    ///
+};
+
 class StyleCollection;
 
 /**
@@ -50,14 +64,14 @@ public:
 
     virtual ~NodeDelegateModel() = default;
 
+    /// It is possible to hide caption in GUI
+    virtual bool captionVisible() const { return true; }
+
     /// Name makes this model unique
     virtual QString name() const = 0;
 
     /// Caption is used in GUI
     virtual QString caption() const = 0;
-
-    /// It is possible to hide caption in GUI
-    virtual bool captionVisible() const { return true; }
 
     /// Port caption is used in GUI to label individual ports
     virtual QString portCaption(PortType, PortIndex) const { return QString(); }
@@ -68,12 +82,16 @@ public:
     /// Validation State will default to Valid, but you can manipulate it by overriding in an inherited class
     virtual NodeValidationState validationState() const { return _nodeValidationState; }
 
-public:
+    /// Returns the curent processing status
+    virtual NodeProcessingStatus processingStatus() const { return _processingStatus; }
+
     QJsonObject save() const override;
 
     void load(QJsonObject const &) override;
 
-    void setValidatonState(const NodeValidationState &validationState);
+    void setValidationState(const NodeValidationState &validationState);
+
+    void setNodeProcessingStatus(NodeProcessingStatus status);
 
     virtual unsigned int nPorts(PortType portType) const = 0;
 
@@ -85,6 +103,10 @@ public:
 
     void setNodeStyle(NodeStyle const &style);
 
+    /// Convenience helper to change the node background color.
+    void setBackgroundColor(QColor const &color);
+
+public:
     virtual void setInData(std::shared_ptr<NodeData> nodeData, PortIndex const portIndex) = 0;
 
     virtual std::shared_ptr<NodeData> outData(PortIndex const port) = 0;
@@ -121,10 +143,20 @@ Q_SIGNALS:
     void dataInvalidated(PortIndex const index);
 
     void computingStarted();
+
     void computingFinished();
 
     void embeddedWidgetSizeUpdated();
 
+    /// Request an update of the node's UI.
+    /**
+     * Emit this signal whenever some internal state change requires
+     * the node to be repainted. The containing graph model will
+     * propagate the update to the scene.
+     */
+    void requestNodeUpdate();
+
+    /// Call this function before deleting the data associated with ports.
     /**
      * @brief Call this function before deleting the data associated with ports.
      * The function notifies the Graph Model and makes it remove and recompute the
@@ -153,8 +185,11 @@ private:
     NodeValidationState _nodeValidationState;
 
     bool _frozen{false};
+    
+    NodeProcessingStatus _processingStatus;
 };
 
 } // namespace QtNodes
 
 Q_DECLARE_METATYPE(QtNodes::NodeValidationState)
+Q_DECLARE_METATYPE(QtNodes::NodeProcessingStatus)

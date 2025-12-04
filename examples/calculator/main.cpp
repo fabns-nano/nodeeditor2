@@ -14,6 +14,7 @@
 
 #include "AdditionModel.hpp"
 #include "DivisionModel.hpp"
+#include "LongProcessingRandomNumber.hpp"
 #include "MultiplicationModel.hpp"
 #include "NumberDisplayDataModel.hpp"
 #include "NumberSourceDataModel.hpp"
