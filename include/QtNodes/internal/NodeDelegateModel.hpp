@@ -107,7 +107,7 @@ public:
     void setNodeStyle(NodeStyle const &style);
 
     void setProgressValue(QString new_progress) { _progressValue = new_progress; }
-    
+
     QPixmap processingStatusIcon() const;
 
     void setStatusIcon(NodeProcessingStatus status, const QPixmap &pixmap);
@@ -188,10 +188,8 @@ private:
 
     NodeValidationState _nodeValidationState;
 
-    NodeProcessingStatus _processingStatus;
-
     QString _progressValue{QString()};
-    
+
     NodeProcessingStatus _processingStatus{NodeProcessingStatus::NoStatus};
 };
 
