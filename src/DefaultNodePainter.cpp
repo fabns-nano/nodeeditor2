@@ -358,14 +358,23 @@ void DefaultNodePainter::drawProcessingIndicator(QPainter *painter, NodeGraphics
 
     AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
 
-    ngo.updateStatusIconSize();
     QSize size = geometry.size(nodeId);
 
-    QIcon icon = ngo.processingStatusIcon();
-    QSize iconSize(16, 16);
-    QPixmap pixmap = icon.pixmap(iconSize);
+    QPixmap pixmap = delegate->processingStatusIcon();
+    NodeStyle nodeStyle = delegate->nodeStyle();
 
-    QRect r(size.width() - 28.0, size.height() - 28.0, 20.0, 20.0);
+    ProcessingIconStyle iconStyle = nodeStyle.processingIconStyle;
+
+    qreal iconSize = iconStyle._size;
+    qreal margin = iconStyle._margin;
+
+    qreal x = margin;
+
+    if (iconStyle._pos == ProcessingIconPos::BottomRight) {
+        x = size.width() - iconSize - margin;
+    }
+
+    QRect r(x, size.height() - iconSize - margin, iconSize, iconSize);
     painter->drawPixmap(r, pixmap);
 }
 
