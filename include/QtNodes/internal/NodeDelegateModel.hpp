@@ -9,8 +9,8 @@
 #include "Export.hpp"
 #include "NodeData.hpp"
 #include "NodeStyle.hpp"
-#include <QtGui/QColor>
 #include "Serializable.hpp"
+#include <QtGui/QColor>
 
 namespace QtNodes {
 
@@ -129,6 +129,10 @@ public:
 
     void setFrozenState(bool state) { _frozen = state; }
 
+    bool frozenMenu() const { return _frozenMenu; }
+
+    void setFrozenMenu(bool state) { _frozenMenu = state; }
+
 public Q_SLOTS:
     virtual void inputConnectionCreated(ConnectionId const &) {}
     virtual void inputConnectionDeleted(ConnectionId const &) {}
@@ -185,8 +189,9 @@ private:
     NodeValidationState _nodeValidationState;
 
     bool _frozen{false};
-    
-    NodeProcessingStatus _processingStatus;
+    bool _frozenMenu{false};
+
+    NodeProcessingStatus _processingStatus{NodeProcessingStatus::NoStatus};
 };
 
 } // namespace QtNodes
