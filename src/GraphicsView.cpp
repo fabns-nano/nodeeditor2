@@ -2,6 +2,8 @@
 
 #include "BasicGraphicsScene.hpp"
 #include "ConnectionGraphicsObject.hpp"
+#include "DataFlowGraphModel.hpp"
+#include "NodeDelegateModel.hpp"
 #include "Definitions.hpp"
 #include "NodeGraphicsObject.hpp"
 #include "StyleCollection.hpp"
@@ -26,7 +28,10 @@
 #include <cmath>
 
 using QtNodes::BasicGraphicsScene;
+using QtNodes::DataFlowGraphModel;
 using QtNodes::GraphicsView;
+using QtNodes::NodeDelegateModel;
+using QtNodes::NodeGraphicsObject;
 
 GraphicsView::GraphicsView(QWidget *parent)
     : QGraphicsView(parent)
@@ -169,18 +174,30 @@ void GraphicsView::centerScene()
 
 void GraphicsView::contextMenuEvent(QContextMenuEvent *event)
 {
-    if (itemAt(event->pos())) {
-        QGraphicsView::contextMenuEvent(event);
-        return;
+    QGraphicsView::contextMenuEvent(event);
+    QMenu *menu = nullptr;
+
+    bool isFrozenMenu;
+
+    if (auto *dfModel = dynamic_cast<DataFlowGraphModel *>(&nodeScene()->graphModel())) {
+        if (auto n = qgraphicsitem_cast<NodeGraphicsObject *>(itemAt(event->pos()))) {
+            if (auto *delegate = dfModel->delegateModel<NodeDelegateModel>(n->nodeId())) {
+                isFrozenMenu = delegate->frozenMenu();
+            }
+        }
     }
 
-    auto const scenePos = mapToScene(event->pos());
-
-    QMenu *menu = nodeScene()->createSceneMenu(scenePos);
+    if (itemAt(event->pos()) && isFrozenMenu) {
+        menu = nodeScene()->createFreezeMenu();
+    } else if (!itemAt(event->pos())) {
+        menu = nodeScene()->createSceneMenu(mapToScene(event->pos()));
+    }
 
     if (menu) {
         menu->exec(event->globalPos());
     }
+
+    return;
 }
 
 void GraphicsView::wheelEvent(QWheelEvent *event)

@@ -18,6 +18,7 @@
 #include "MultiplicationModel.hpp"
 #include "NumberDisplayDataModel.hpp"
 #include "NumberSourceDataModel.hpp"
+#include "RandomNumber.hpp"
 #include "SubtractionModel.hpp"
 
 using QtNodes::ConnectionStyle;

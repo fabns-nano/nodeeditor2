@@ -141,6 +141,14 @@ public:
 
     virtual bool resizable() const { return false; }
 
+    bool frozen() const { return _frozen; }
+
+    void setFrozenState(bool state) { _frozen = state; }
+
+    bool frozenMenu() const { return _frozenMenu; }
+
+    void setFrozenMenu(bool state) { _frozenMenu = state; }
+
 public Q_SLOTS:
     virtual void inputConnectionCreated(ConnectionId const &) {}
     virtual void inputConnectionDeleted(ConnectionId const &) {}
@@ -195,6 +203,10 @@ private:
     NodeStyle _nodeStyle;
 
     NodeValidationState _nodeValidationState;
+
+    bool _frozen{false};
+
+    bool _frozenMenu{false};
 
     NodeProcessingStatus _processingStatus{NodeProcessingStatus::NoStatus};
 };
