@@ -150,6 +150,10 @@ void GraphicsView::setScene(BasicGraphicsScene *scene)
     auto redoAction = scene->undoStack().createRedoAction(this, tr("&Redo"));
     redoAction->setShortcuts(QKeySequence::Redo);
     addAction(redoAction);
+
+    /// Connections to context menu funcionality
+    connect(scene, &BasicGraphicsScene::zoomFitAllClicked, this, &GraphicsView::zoomFitAll);
+    connect(scene, &BasicGraphicsScene::zoomFitSelectedClicked, this, &GraphicsView::zoomFitSelected);
 }
 
 void GraphicsView::centerScene()
@@ -169,18 +173,20 @@ void GraphicsView::centerScene()
 
 void GraphicsView::contextMenuEvent(QContextMenuEvent *event)
 {
+    QGraphicsView::contextMenuEvent(event);
+    QMenu *menu;
+
     if (itemAt(event->pos())) {
-        QGraphicsView::contextMenuEvent(event);
-        return;
+        menu = nodeScene()->createZoomMenu(mapToScene(event->pos()));
+    } else {
+        menu = nodeScene()->createSceneMenu(mapToScene(event->pos()));
     }
-
-    auto const scenePos = mapToScene(event->pos());
-
-    QMenu *menu = nodeScene()->createSceneMenu(scenePos);
 
     if (menu) {
         menu->exec(event->globalPos());
     }
+
+    return;
 }
 
 void GraphicsView::wheelEvent(QWheelEvent *event)
@@ -476,4 +482,24 @@ QPointF GraphicsView::scenePastePosition()
         origin = viewRect.center();
 
     return mapToScene(origin);
+}
+
+void GraphicsView::zoomFitAll()
+{
+    fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
+}
+
+void GraphicsView::zoomFitSelected()
+{
+    if(scene()->selectedItems().count() > 0){
+
+        QRectF unitedBoundingRect{};
+
+        for(QGraphicsItem * item : scene()->selectedItems())
+        {
+            unitedBoundingRect = unitedBoundingRect.united(item->mapRectToScene(item->boundingRect()));
+        }
+
+        fitInView(unitedBoundingRect, Qt::KeepAspectRatio);
+    }
 }
