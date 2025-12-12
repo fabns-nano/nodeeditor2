@@ -2,6 +2,7 @@
 
 #include "BasicGraphicsScene.hpp"
 #include "ConnectionGraphicsObject.hpp"
+#include "DataFlowGraphModel.hpp"
 #include "NodeGraphicsObject.hpp"
 #include "StyleCollection.hpp"
 #include "UndoCommands.hpp"
@@ -23,6 +24,7 @@
 #include <cmath>
 
 using QtNodes::BasicGraphicsScene;
+using QtNodes::DataFlowGraphModel;
 using QtNodes::GraphicsView;
 
 GraphicsView::GraphicsView(QWidget *parent)
@@ -176,19 +178,18 @@ void GraphicsView::contextMenuEvent(QContextMenuEvent *event)
     QGraphicsView::contextMenuEvent(event);
     QMenu *menu;
 
-    if (itemAt(event->pos())) {
-        bool isZoomFitMenu;
+    bool isZoomFitMenu;
 
-        if (auto *dfModel = dynamic_cast<DataFlowGraphModel *>(&nodeScene()->graphModel())) {
-            if (auto n = qgraphicsitem_cast<NodeGraphicsObject *>(itemAt(event->pos()))) {
-                if (auto *delegate = dfModel->delegateModel<NodeDelegateModel>(n->nodeId())) {
-                    isZoomFitMenu = delegate->zoomFitMenu();
-                }
+    if (auto *dfModel = dynamic_cast<DataFlowGraphModel *>(&nodeScene()->graphModel())) {
+        if (auto n = qgraphicsitem_cast<NodeGraphicsObject *>(itemAt(event->pos()))) {
+            if (auto *delegate = dfModel->delegateModel<NodeDelegateModel>(n->nodeId())) {
+                isZoomFitMenu = delegate->zoomFitMenu();
             }
         }
-        if (itemAt(event->pos()) && isZoomFitMenu) {
-            menu = nodeScene()->createZoomMenu(mapToScene(event->pos()));
-        }
+    }
+    if (itemAt(event->pos()) && isZoomFitMenu) {
+        menu = nodeScene()->createZoomMenu(mapToScene(event->pos()));
+
     } else if (!itemAt(event->pos())) {
         menu = nodeScene()->createSceneMenu(mapToScene(event->pos()));
     }
