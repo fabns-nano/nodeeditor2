@@ -150,7 +150,10 @@ void GraphicsView::setScene(BasicGraphicsScene *scene)
 
     /// Connections to context menu funcionality
     connect(scene, &BasicGraphicsScene::zoomFitAllClicked, this, &GraphicsView::zoomFitAll);
-    connect(scene, &BasicGraphicsScene::zoomFitSelectedClicked, this, &GraphicsView::zoomFitSelected);
+    connect(scene,
+            &BasicGraphicsScene::zoomFitSelectedClicked,
+            this,
+            &GraphicsView::zoomFitSelected);
 }
 
 void GraphicsView::centerScene()
@@ -174,8 +177,19 @@ void GraphicsView::contextMenuEvent(QContextMenuEvent *event)
     QMenu *menu;
 
     if (itemAt(event->pos())) {
-        menu = nodeScene()->createZoomMenu(mapToScene(event->pos()));
-    } else {
+        bool isZoomFitMenu;
+
+        if (auto *dfModel = dynamic_cast<DataFlowGraphModel *>(&nodeScene()->graphModel())) {
+            if (auto n = qgraphicsitem_cast<NodeGraphicsObject *>(itemAt(event->pos()))) {
+                if (auto *delegate = dfModel->delegateModel<NodeDelegateModel>(n->nodeId())) {
+                    isZoomFitMenu = delegate->zoomFitMenu();
+                }
+            }
+        }
+        if (itemAt(event->pos()) && isZoomFitMenu) {
+            menu = nodeScene()->createZoomMenu(mapToScene(event->pos()));
+        }
+    } else if (!itemAt(event->pos())) {
         menu = nodeScene()->createSceneMenu(mapToScene(event->pos()));
     }
 
@@ -421,13 +435,12 @@ void GraphicsView::zoomFitAll()
 
 void GraphicsView::zoomFitSelected()
 {
-    if(scene()->selectedItems().count() > 0){
-
+    if (scene()->selectedItems().count() > 0) {
         QRectF unitedBoundingRect{};
 
-        for(QGraphicsItem * item : scene()->selectedItems())
-        {
-            unitedBoundingRect = unitedBoundingRect.united(item->mapRectToScene(item->boundingRect()));
+        for (QGraphicsItem *item : scene()->selectedItems()) {
+            unitedBoundingRect = unitedBoundingRect.united(
+                item->mapRectToScene(item->boundingRect()));
         }
 
         fitInView(unitedBoundingRect, Qt::KeepAspectRatio);
