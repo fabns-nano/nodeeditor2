@@ -176,7 +176,7 @@ void GraphicsView::centerScene()
 void GraphicsView::contextMenuEvent(QContextMenuEvent *event)
 {
     QGraphicsView::contextMenuEvent(event);
-    QMenu *menu;
+    QMenu *menu = nullptr;
 
     bool isZoomFitMenu;
 
