@@ -61,6 +61,10 @@ public Q_SLOTS:
 
     void onPasteObjects();
 
+    void zoomFitAll();
+
+    void zoomFitSelected();
+
 Q_SIGNALS:
     void scaleChanged(double scale);
 
