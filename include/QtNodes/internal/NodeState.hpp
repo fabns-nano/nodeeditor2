@@ -5,11 +5,9 @@
 
 #include <QtCore/QPointF>
 #include <QtCore/QPointer>
-#include <QtCore/QUuid>
-
-#include "Export.hpp"
 
 #include "Definitions.hpp"
+#include "Export.hpp"
 #include "NodeData.hpp"
 
 namespace QtNodes {
