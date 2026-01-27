@@ -17,7 +17,6 @@
 #include <tuple>
 #include <unordered_map>
 
-
 class QUndoStack;
 
 namespace QtNodes {
@@ -58,6 +57,8 @@ public:
     void setNodePainter(std::unique_ptr<AbstractNodePainter> newPainter);
 
     void setConnectionPainter(std::unique_ptr<AbstractConnectionPainter> newPainter);
+
+    void setNodeGeometry(std::unique_ptr<AbstractNodeGeometry> newGeom);
 
     QUndoStack &undoStack();
 
@@ -123,6 +124,9 @@ Q_SIGNALS:
 
     /// Signal allows showing custom context menu upon clicking a node.
     void nodeContextMenu(NodeId const nodeId, QPointF const pos);
+    /// Signals to call Graphics View's zoomFit methods
+    void zoomFitAllClicked();
+    void zoomFitSelectedClicked();
 
 private:
     /**
@@ -139,17 +143,17 @@ private:
 
 public Q_SLOTS:
     /// Slot called when the `connectionId` is erased form the AbstractGraphModel.
-    void onConnectionDeleted(ConnectionId const connectionId);
+    virtual void onConnectionDeleted(ConnectionId const connectionId);
 
     /// Slot called when the `connectionId` is created in the AbstractGraphModel.
-    void onConnectionCreated(ConnectionId const connectionId);
+    virtual void onConnectionCreated(ConnectionId const connectionId);
 
-    void onNodeDeleted(NodeId const nodeId);
-    void onNodeCreated(NodeId const nodeId);
-    void onNodePositionUpdated(NodeId const nodeId);
-    void onNodeUpdated(NodeId const nodeId);
-    void onNodeClicked(NodeId const nodeId);
-    void onModelReset();
+    virtual void onNodeDeleted(NodeId const nodeId);
+    virtual void onNodeCreated(NodeId const nodeId);
+    virtual void onNodePositionUpdated(NodeId const nodeId);
+    virtual void onNodeUpdated(NodeId const nodeId);
+    virtual void onNodeClicked(NodeId const nodeId);
+    virtual void onModelReset();
 
 private:
     AbstractGraphModel &_graphModel;

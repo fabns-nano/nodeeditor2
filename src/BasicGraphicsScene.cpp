@@ -11,6 +11,10 @@
 
 #include <QUndoStack>
 
+#include <QHeaderView>
+#include <QLineEdit>
+#include <QTreeWidget>
+#include <QWidgetAction>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QGraphicsSceneMoveEvent>
 
@@ -120,6 +124,11 @@ void BasicGraphicsScene::setNodePainter(std::unique_ptr<AbstractNodePainter> new
 void BasicGraphicsScene::setConnectionPainter(std::unique_ptr<AbstractConnectionPainter> newPainter)
 {
     _connectionPainter = std::move(newPainter);
+}
+
+void BasicGraphicsScene::setNodeGeometry(std::unique_ptr<AbstractNodeGeometry> newGeom)
+{
+    _nodeGeometry = std::move(newGeom);
 }
 
 QUndoStack &BasicGraphicsScene::undoStack()
