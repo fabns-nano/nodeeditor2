@@ -20,6 +20,14 @@
 
 class QUndoStack;
 
+namespace std {
+template<>
+struct hash<QUuid>
+{
+    size_t operator()(const QUuid &uuid) const noexcept { return qHash(uuid); }
+};
+} // namespace std
+
 namespace QtNodes {
 
 class AbstractConnectionPainter;

@@ -565,7 +565,12 @@ std::unordered_map<QUuid, QUuid> BasicGraphicsScene::loadItems(const QByteArray 
     QJsonArray groupsJsonArray = jsonDocument["groups"].toArray();
     for (const auto &group : groupsJsonArray) {
         auto [groupWeakPtr, groupIDsMap] = restoreGroup(group.toObject());
-        IDMap.merge(groupIDsMap);
+        for (const auto &[oldGroupId, newGroupId] : groupIDsMap) {
+            QUuid oldUuid = encodeNodeId(oldGroupId);
+            QUuid newUuid = encodeNodeId(newGroupId);
+
+            IDMap[oldUuid] = newUuid;
+        }
         if (auto groupPtr = groupWeakPtr.lock(); groupPtr) {
             auto &ggoRef = groupPtr->groupGraphicsObject();
             if (usePastePos && !offsetInitialized) {
