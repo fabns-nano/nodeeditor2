@@ -7,9 +7,8 @@
 #include "Export.hpp"
 #include "GroupGraphicsObject.hpp"
 #include "NodeGroup.hpp"
-#include "UndoCommands.hpp"
-
 #include "QUuidStdHash.hpp"
+#include "UndoCommands.hpp"
 #include <QtCore/QJsonObject>
 
 #include <QtCore/QUuid>

@@ -12,6 +12,7 @@
 #include "NodeData.hpp"
 #include "NodeStyle.hpp"
 #include "Serializable.hpp"
+#include <QtGui/QColor>
 
 namespace QtNodes {
 
@@ -83,14 +84,9 @@ public:
     /// Validation State will default to Valid, but you can manipulate it by overriding in an inherited class
     virtual NodeValidationState validationState() const { return _nodeValidationState; }
 
-<<<<<<< HEAD
-    /// Returns the curent processing status
-    virtual NodeProcessingStatus processingStatus() const { return _processingStatus; }
-
     /// Progress is used in GUI
     virtual QString progressValue() const { return _progressValue; }
 
-=======
     /// Nicknames can be assigned to nodes and shown in GUI
     virtual QString label() const { return QString(); }
 
@@ -103,23 +99,15 @@ public:
     /// Returns the curent processing status
     virtual NodeProcessingStatus processingStatus() const { return _processingStatus; }
 
->>>>>>> 2e1d3f010cfac43123c4a0922a5376c5227c2e36
     QJsonObject save() const override;
 
     void load(QJsonObject const &) override;
 
-<<<<<<< HEAD
     void setNodeProcessingStatus(NodeProcessingStatus status);
 
     void setValidationState(const NodeValidationState &validationState);
 
 public:
-=======
-    void setValidationState(const NodeValidationState &validationState);
-
-    void setNodeProcessingStatus(NodeProcessingStatus status);
-
->>>>>>> 2e1d3f010cfac43123c4a0922a5376c5227c2e36
     virtual unsigned int nPorts(PortType portType) const = 0;
 
     virtual NodeDataType dataType(PortType portType, PortIndex portIndex) const = 0;
@@ -163,10 +151,6 @@ public:
     bool frozen() const { return _frozen; }
 
     void setFrozenState(bool state) { _frozen = state; }
-
-    bool frozenMenu() const { return _frozenMenu; }
-
-    void setFrozenMenu(bool state) { _frozenMenu = state; }
 
 public Q_SLOTS:
     virtual void inputConnectionCreated(ConnectionId const &) {}
@@ -221,13 +205,11 @@ Q_SIGNALS:
 private:
     NodeStyle _nodeStyle;
 
+    bool _frozen{false};
+
     NodeValidationState _nodeValidationState;
 
     QString _progressValue{QString()};
-
-    bool _frozen{false};
-
-    bool _frozenMenu{false};
 
     NodeProcessingStatus _processingStatus{NodeProcessingStatus::NoStatus};
 };
