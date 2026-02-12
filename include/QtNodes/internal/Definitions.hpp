@@ -19,6 +19,7 @@ Q_NAMESPACE_EXPORT(NODE_EDITOR_PUBLIC)
 #endif
 
     /**
+<<<<<<< HEAD
  * Constants used for fetching QVariant data from GraphModel.
  */
 
@@ -36,6 +37,9 @@ Q_NAMESPACE_EXPORT(NODE_EDITOR_PUBLIC)
         ValidationState = 11,  ///< Enum NodeValidationState of the node
         ProcessingStatus = 12, ///< Enum NodeProcessingStatus of the node
         ProgressValue = 13,    ///< 'QString' for the progress value
+        LabelVisible = 14,     ///< `bool` for label visibility.
+        Label = 15,            ///< `QString` for node label.
+        LabelEditable = 16,    ///< `bool` to indicate label editing support.
     };
 
 Q_ENUM_NS(NodeRole)

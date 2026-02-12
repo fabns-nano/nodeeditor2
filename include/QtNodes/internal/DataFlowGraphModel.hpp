@@ -12,7 +12,9 @@
 #include <QString>
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
+#include <QString>
 
 namespace QtNodes {
 
@@ -153,6 +155,9 @@ private:
     std::vector<GroupData> _groups;
 
     mutable std::unordered_map<NodeId, NodeGeometryData> _nodeGeometryData;
+
+    std::unordered_map<NodeId, QString> _labels;
+    std::unordered_map<NodeId, bool> _labelsVisible;
 };
 
 } // namespace QtNodes
