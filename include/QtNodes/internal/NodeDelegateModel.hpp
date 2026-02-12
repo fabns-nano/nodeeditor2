@@ -86,6 +86,9 @@ public:
     /// Returns the curent processing status
     virtual NodeProcessingStatus processingStatus() const { return _processingStatus; }
 
+    /// Progress is used in GUI
+    virtual QString progressValue() const { return _progressValue; }
+
     QJsonObject save() const override;
 
     void load(QJsonObject const &) override;
@@ -107,6 +110,8 @@ public:
 
     /// Convenience helper to change the node background color.
     void setBackgroundColor(QColor const &color);
+
+    void setProgressValue(QString new_progress) { _progressValue = new_progress; }
 
     QPixmap processingStatusIcon() const;
 
@@ -187,6 +192,8 @@ private:
     NodeStyle _nodeStyle;
 
     NodeValidationState _nodeValidationState;
+
+    QString _progressValue{QString()};
 
     NodeProcessingStatus _processingStatus{NodeProcessingStatus::NoStatus};
 };
