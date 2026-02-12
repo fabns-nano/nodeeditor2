@@ -40,6 +40,7 @@ Q_NAMESPACE_EXPORT(NODE_EDITOR_PUBLIC)
         LabelVisible = 14,     ///< `bool` for label visibility.
         Label = 15,            ///< `QString` for node label.
         LabelEditable = 16,    ///< `bool` to indicate label editing support.
+
     };
 
 Q_ENUM_NS(NodeRole)
