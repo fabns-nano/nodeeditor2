@@ -343,6 +343,14 @@ public Q_SLOTS:
      */
     void onDeleteSelectedObjects() { undoStack().push(new DeleteCommand(this)); }
 
+    /**
+     * @brief Slot called to trigger the paste command action.
+     */
+    void onPasteSelectedObjects(QPointF const &mouseScenePos)
+    {
+        undoStack().push(new PasteCommand(this, mouseScenePos));
+    }
+
 private:
     AbstractGraphModel &_graphModel;
 

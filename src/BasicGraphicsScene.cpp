@@ -787,22 +787,24 @@ QMenu *BasicGraphicsScene::createStdMenu(QPointF const scenePos)
     if (_groupingEnabled) {
         QMenu *addToGroupMenu = menu->addMenu("Add to group...");
 
-        for (const auto &groupMap : _groups) {
-            auto groupPtr = groupMap.second;
-            auto id = groupMap.first;
+        if (!_groups.empty()) {
+            for (const auto &groupMap : _groups) {
+                auto groupPtr = groupMap.second;
+                auto id = groupMap.first;
+                if (!groupPtr)
+                    continue;
 
-            if (!groupPtr)
-                continue;
+                auto groupName = groupPtr->name();
+                QAction *groupAction = addToGroupMenu->addAction(groupName);
 
-            auto groupName = groupPtr->name();
-
-            QAction *groupAction = addToGroupMenu->addAction(groupName);
-
-            for (const auto &node : selectedNodes()) {
-                connect(groupAction, &QAction::triggered, [this, id, node]() {
-                    this->addNodeToGroup(node->nodeId(), id);
+                connect(groupAction, &QAction::triggered, [this, id]() {
+                    for (const auto &node : selectedNodes()) {
+                        this->addNodeToGroup(node->nodeId(), id);
+                    }
                 });
             }
+        } else {
+            addToGroupMenu->setEnabled(false);
         }
 
         QAction *createGroupAction = menu->addAction("Create group from selection");
@@ -816,7 +818,6 @@ QMenu *BasicGraphicsScene::createStdMenu(QPointF const scenePos)
     cutAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_X));
 
     connect(copyAction, &QAction::triggered, this, &BasicGraphicsScene::onCopySelectedObjects);
-
     connect(cutAction, &QAction::triggered, [this] {
         onCopySelectedObjects();
         onDeleteSelectedObjects();
