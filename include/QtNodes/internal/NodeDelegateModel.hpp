@@ -12,7 +12,6 @@
 #include "NodeData.hpp"
 #include "NodeStyle.hpp"
 #include "Serializable.hpp"
-#include <QtGui/QColor>
 
 namespace QtNodes {
 

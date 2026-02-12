@@ -37,6 +37,7 @@ Q_NAMESPACE_EXPORT(NODE_EDITOR_PUBLIC)
         ProcessingStatus = 12, ///< Enum NodeProcessingStatus of the node
         ProgressValue = 13,    ///< 'QString' for the progress value
     };
+
 Q_ENUM_NS(NodeRole)
 
 /**
