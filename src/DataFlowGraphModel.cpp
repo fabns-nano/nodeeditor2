@@ -563,8 +563,6 @@ void DataFlowGraphModel::loadNode(QJsonObject const &nodeJson)
     // because all the new ids were created past the removed nodes.
     NodeId restoredNodeId = nodeJson["id"].toInt();
 
-    auto jsonKeys = nodeJson.keys();
-
     _nextNodeId = std::max(_nextNodeId, restoredNodeId + 1);
 
     QJsonObject const internalDataJson = nodeJson["internal-data"].toObject();
