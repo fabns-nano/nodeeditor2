@@ -6,6 +6,8 @@
 #include "NodeGraphicsObject.hpp"
 #include "UndoCommands.hpp"
 
+#include <QClipboard>
+#include <QtWidgets/QApplication>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QGraphicsSceneMoveEvent>
 #include <QtWidgets/QHeaderView>
@@ -22,6 +24,7 @@
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonParseError>
 #include <QtCore/QJsonValue>
+#include <QtCore/QMimeData>
 #include <QtCore/QtGlobal>
 
 #include <stdexcept>
@@ -63,7 +66,6 @@ QMenu *DataFlowGraphicsScene::createSceneMenu(QPointF const scenePos)
 {
     QMenu *modelMenu = new QMenu();
 
-    //
     auto *txtBox = new QLineEdit(modelMenu);
     txtBox->setPlaceholderText(QStringLiteral("Filter"));
     txtBox->setClearButtonEnabled(true);
@@ -156,8 +158,31 @@ QMenu *DataFlowGraphicsScene::createSceneMenu(QPointF const scenePos)
     copyAction->setEnabled(hasSelection);
     cutAction->setEnabled(hasSelection);
 
-    //disable Paste when clipboard is empty or incompatible
-    //pasteAction->setEnabled();
+    auto hasPasteableClipboardData = [] {
+        QClipboard const *clipboard = QApplication::clipboard();
+        if (clipboard == nullptr)
+            return false;
+
+        QMimeData const *mimeData = clipboard->mimeData();
+        if (mimeData == nullptr)
+            return false;
+
+        QJsonDocument json;
+        if (mimeData->hasFormat("application/qt-nodes-graph")) {
+            json = QJsonDocument::fromJson(mimeData->data("application/qt-nodes-graph"));
+        } else if (mimeData->hasText()) {
+            json = QJsonDocument::fromJson(mimeData->text().toUtf8());
+        } else {
+            return false;
+        }
+
+        if (!json.isObject())
+            return false;
+
+        return !json.object()["nodes"].toArray().empty();
+    };
+
+    pasteAction->setEnabled(hasPasteableClipboardData());
 
     modelMenu->setAttribute(Qt::WA_DeleteOnClose);
 
