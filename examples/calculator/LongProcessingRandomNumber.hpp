@@ -13,10 +13,10 @@
 /// The model generates a random value in a long processing schema, as it should demonstrate
 /// the usage of the NodeProcessingStatus and the ProgressValue functionality.
 /// The random number is generate in the [n1, n2] interval.
-class RandomNumberModel : public MathOperationDataModel
+class LongProcessingRandomNumber : public MathOperationDataModel
 {
 public:
-    RandomNumberModel() {
+    LongProcessingRandomNumber() {
         this->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Empty);
 
 
@@ -62,7 +62,7 @@ public:
         });
     }
 
-    virtual ~RandomNumberModel() {
+    virtual ~LongProcessingRandomNumber() {
         if (_progressTimer) {
             _progressTimer->stop();
             delete _progressTimer;

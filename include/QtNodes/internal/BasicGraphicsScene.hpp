@@ -9,7 +9,10 @@
 #include "NodeGroup.hpp"
 #include "UndoCommands.hpp"
 
+#include "QUuidStdHash.hpp"
 #include <QtCore/QJsonObject>
+
+#include <QtCore/QUuid>
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QMenu>
 
@@ -42,7 +45,7 @@ class NodeGroup;
 class GroupGraphicsObject;
 struct ConnectionId;
 
-/// An instance of QGraphicsScene, holds connections and nodes.
+/// An instance of QGraphicsScene , holds connections and nodes.
 class NODE_EDITOR_PUBLIC BasicGraphicsScene : public QGraphicsScene
 {
     Q_OBJECT
@@ -268,6 +271,8 @@ public:
      * @param groupGo reference to the GroupGraphicsObject related to the selected group.
      */
     QMenu *createGroupMenu(QPointF const scenePos, GroupGraphicsObject *groupGo);
+
+    void freezeModelAndConnections(bool isFreeze);
 
 Q_SIGNALS:
     void modified(BasicGraphicsScene *);
