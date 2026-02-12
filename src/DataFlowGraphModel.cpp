@@ -532,6 +532,23 @@ QJsonObject DataFlowGraphModel::save() const
     }
     sceneJson["connections"] = connJsonArray;
 
+    QJsonArray groupsJsonArray;
+    for (GroupData const &group : _groups) {
+        QJsonObject groupJson;
+        groupJson["id"] = static_cast<qint64>(group.id);
+        groupJson["name"] = group.name;
+
+        QJsonArray nodeIdsJson;
+        for (NodeId const nodeId : group.nodeIds) {
+            nodeIdsJson.append(static_cast<qint64>(nodeId));
+        }
+        groupJson["nodes"] = nodeIdsJson;
+        groupJson["locked"] = group.locked;
+
+        groupsJsonArray.append(groupJson);
+    }
+    sceneJson["groups"] = groupsJsonArray;
+
     return sceneJson;
 }
 
@@ -545,6 +562,8 @@ void DataFlowGraphModel::loadNode(QJsonObject const &nodeJson)
     // 2. When undoing the deletion command.  Conflict is not possible
     // because all the new ids were created past the removed nodes.
     NodeId restoredNodeId = nodeJson["id"].toInt();
+
+    auto jsonKeys = nodeJson.keys();
 
     _nextNodeId = std::max(_nextNodeId, restoredNodeId + 1);
 
@@ -609,6 +628,8 @@ void DataFlowGraphModel::loadNode(QJsonObject const &nodeJson)
 
 void DataFlowGraphModel::load(QJsonObject const &jsonDocument)
 {
+    _groups.clear();
+
     QJsonArray nodesJsonArray = jsonDocument["nodes"].toArray();
 
     for (QJsonValueRef nodeJson : nodesJsonArray) {
@@ -625,6 +646,36 @@ void DataFlowGraphModel::load(QJsonObject const &jsonDocument)
         // Restore the connection
         addConnection(connId);
     }
+
+    QJsonArray groupsJsonArray = jsonDocument["groups"].toArray();
+    _groups.reserve(groupsJsonArray.size());
+
+    for (QJsonValue const &groupValue : groupsJsonArray) {
+        QJsonObject const groupJson = groupValue.toObject();
+
+        GroupData group;
+        group.id = static_cast<GroupId>(groupJson["id"].toInt(InvalidGroupId));
+        group.name = groupJson["name"].toString();
+        group.locked = groupJson["locked"].toBool(true);
+
+        QJsonArray const nodeIdsJson = groupJson["nodes"].toArray();
+        group.nodeIds.reserve(nodeIdsJson.size());
+        for (QJsonValue const &idValue : nodeIdsJson) {
+            group.nodeIds.push_back(static_cast<NodeId>(idValue.toInt(InvalidNodeId)));
+        }
+
+        _groups.push_back(std::move(group));
+    }
+}
+
+void DataFlowGraphModel::setGroups(std::vector<GroupData> groups)
+{
+    _groups = std::move(groups);
+}
+
+std::vector<DataFlowGraphModel::GroupData> const &DataFlowGraphModel::groups() const
+{
+    return _groups;
 }
 
 void DataFlowGraphModel::onOutPortDataUpdated(NodeId const nodeId, PortIndex const portIndex)

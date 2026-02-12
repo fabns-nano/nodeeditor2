@@ -9,8 +9,10 @@
 #include "Export.hpp"
 
 #include <QJsonObject>
+#include <QString>
 
 #include <memory>
+#include <vector>
 
 namespace QtNodes {
 
@@ -25,6 +27,14 @@ public:
     {
         QSize size;
         QPointF pos;
+    };
+
+    struct GroupData
+    {
+        GroupId id{InvalidGroupId};
+        QString name;
+        std::vector<NodeId> nodeIds;
+        bool locked{true};
     };
 
 public:
@@ -82,6 +92,10 @@ public:
     // From Serializable
     void load(QJsonObject const &json) override;
 
+    void setGroups(std::vector<GroupData> groups);
+
+    std::vector<GroupData> const &groups() const;
+
     /**
      * Fetches the NodeDelegateModel for the given `nodeId` and tries to cast the
      * stored pointer to the given type
@@ -135,6 +149,8 @@ private:
     std::unordered_map<NodeId, std::unique_ptr<NodeDelegateModel>> _models;
 
     std::unordered_set<ConnectionId> _connectivity;
+
+    std::vector<GroupData> _groups;
 
     mutable std::unordered_map<NodeId, NodeGeometryData> _nodeGeometryData;
 };

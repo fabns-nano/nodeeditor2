@@ -471,6 +471,8 @@ std::weak_ptr<NodeGroup> BasicGraphicsScene::createGroup(std::vector<NodeGraphic
 
     _groups[group->id()] = std::move(group);
 
+    syncGroupDataToGraphModel();
+
     return groupWeakPtr;
 }
 
@@ -527,6 +529,8 @@ void BasicGraphicsScene::addNodeToGroup(NodeId nodeId, GroupId groupId)
     auto node = nodeIt->second.get();
     group->addNode(node);
     node->setNodeGroup(group);
+
+    syncGroupDataToGraphModel();
 }
 
 void BasicGraphicsScene::removeNodeFromGroup(NodeId nodeId)
@@ -547,6 +551,8 @@ void BasicGraphicsScene::removeNodeFromGroup(NodeId nodeId)
     }
     nodeIt->second->unsetNodeGroup();
     nodeIt->second->lock(false);
+
+    syncGroupDataToGraphModel();
 }
 
 std::unordered_map<QUuid, QUuid> BasicGraphicsScene::loadItems(const QByteArray &data,
@@ -555,24 +561,42 @@ std::unordered_map<QUuid, QUuid> BasicGraphicsScene::loadItems(const QByteArray 
 {
     QJsonObject const jsonDocument = QJsonDocument::fromJson(data).object();
 
-    // maps the stored (old) node UIDs to their new assigned UIDs
     std::unordered_map<QUuid, QUuid> IDMap{};
 
     QPointF offset;
     bool offsetInitialized{false};
     clearSelection();
 
-    QJsonArray groupsJsonArray = jsonDocument["groups"].toArray();
-    for (const auto &group : groupsJsonArray) {
-        auto [groupWeakPtr, groupIDsMap] = restoreGroup(group.toObject());
-        for (const auto &[oldGroupId, newGroupId] : groupIDsMap) {
-            QUuid oldUuid = encodeNodeId(oldGroupId);
-            QUuid newUuid = encodeNodeId(newGroupId);
+    QJsonArray nodesJsonArray = jsonDocument.value("nodes").toArray();
+    QHash<NodeId, QJsonObject> nodeById;
+    nodeById.reserve(nodesJsonArray.size());
+    for (const QJsonValue &v : nodesJsonArray) {
+        QJsonObject o = v.toObject();
+        NodeId id = static_cast<NodeId>(o.value("id").toInt(InvalidNodeId));
+        if (id != InvalidNodeId)
+            nodeById.insert(id, o);
+    }
 
+    QSet<NodeId> createdOldNodeIds;
+
+    QJsonArray groupsJsonArray = jsonDocument.value("groups").toArray();
+    for (const QJsonValue &groupVal : groupsJsonArray) {
+        auto [groupWeakPtr, groupIDsMap] = restoreGroup(groupVal.toObject(), nodeById);
+
+        for (const auto &[oldGroupId, newGroupId] : groupIDsMap) {
+            NodeId oldNodeId = static_cast<NodeId>(oldGroupId);
+            NodeId newNodeId = static_cast<NodeId>(newGroupId);
+
+            createdOldNodeIds.insert(oldNodeId);
+
+            QUuid oldUuid = encodeNodeId(oldNodeId);
+            QUuid newUuid = encodeNodeId(newNodeId);
             IDMap[oldUuid] = newUuid;
         }
+
         if (auto groupPtr = groupWeakPtr.lock(); groupPtr) {
             auto &ggoRef = groupPtr->groupGraphicsObject();
+
             if (usePastePos && !offsetInitialized) {
                 offset = pastePos - ggoRef.pos();
                 offsetInitialized = true;
@@ -584,13 +608,18 @@ std::unordered_map<QUuid, QUuid> BasicGraphicsScene::loadItems(const QByteArray 
             ggoRef.setSelected(true);
         }
     }
-    QJsonArray nodesJsonArray = jsonDocument["nodes"].toArray();
+
     for (QJsonValueRef node : nodesJsonArray) {
-        auto nodeObj = node.toObject();
+        QJsonObject nodeObj = node.toObject();
+        NodeId oldNodeId = static_cast<NodeId>(nodeObj.value("id").toInt(InvalidNodeId));
+
+        if (createdOldNodeIds.contains(oldNodeId)) {
+            continue;
+        }
+
         auto &nodeRef = loadNodeToMap(nodeObj, false);
 
-        NodeId oldNodeId{static_cast<NodeId>(nodeObj["id"].toInt())};
-        NodeId newNodeId{nodeRef.nodeId()};
+        NodeId newNodeId = nodeRef.nodeId();
         QUuid oldId = encodeNodeId(oldNodeId);
         QUuid newId = encodeNodeId(newNodeId);
         IDMap.insert(std::make_pair(oldId, newId));
@@ -606,12 +635,12 @@ std::unordered_map<QUuid, QUuid> BasicGraphicsScene::loadItems(const QByteArray 
         nodeRef.setSelected(true);
     }
 
-    QJsonArray connectionJsonArray = jsonDocument["connections"].toArray();
+    QJsonArray connectionJsonArray = jsonDocument.value("connections").toArray();
     for (QJsonValueRef connection : connectionJsonArray) {
         auto nodeIdMap = convertMap(IDMap);
         loadConnectionToMap(connection.toObject(), nodeIdMap);
-        ConnectionId connId = fromJson(connection.toObject());
 
+        ConnectionId connId = fromJson(connection.toObject());
         auto it = _connectionGraphicsObjects.find(connId);
         if (it != _connectionGraphicsObjects.end()) {
             UniqueConnectionGraphicsObject &obj = it->second;
@@ -687,25 +716,46 @@ void BasicGraphicsScene::loadConnectionToMap(QJsonObject const &connectionJson,
 }
 
 std::pair<std::weak_ptr<NodeGroup>, std::unordered_map<GroupId, GroupId>>
-BasicGraphicsScene::restoreGroup(QJsonObject const &groupJson)
+BasicGraphicsScene::restoreGroup(QJsonObject const &groupJson,
+                                 QHash<NodeId, QJsonObject> const &nodeById)
 {
     if (!_groupingEnabled)
         return {std::weak_ptr<NodeGroup>(), {}};
 
-    // since the new nodes will have the same IDs as in the file and the connections
-    // need these old IDs to be restored, we must create new IDs and map them to the
-    // old ones so the connections are properly restored
     std::unordered_map<GroupId, GroupId> IDsMap{};
     std::unordered_map<NodeId, NodeId> nodeIdMap{};
-
     std::vector<NodeGraphicsObject *> group_children{};
 
-    QJsonArray nodesJson = groupJson["nodes"].toArray();
-    for (const QJsonValueRef nodeJson : nodesJson) {
-        QJsonObject nodeObject = nodeJson.toObject();
-        NodeId const oldNodeId = jsonValueToNodeId(nodeObject["id"]);
+    QJsonArray nodesJson = groupJson.value("nodes").toArray();
+    for (QJsonValue const &nodeVal : nodesJson) {
+        QJsonObject nodeObject;
 
-        NodeGraphicsObject &nodeRef = loadNodeToMap(nodeObject, false);
+        if (nodeVal.isDouble()) {
+            NodeId const oldNodeId = static_cast<NodeId>(nodeVal.toInt(InvalidNodeId));
+            if (oldNodeId == InvalidNodeId) {
+                qWarning() << "restoreGroup(): invalid node id in group:" << nodeVal;
+                continue;
+            }
+
+            auto it = nodeById.find(oldNodeId);
+            if (it == nodeById.end()) {
+                qWarning() << "restoreGroup(): group references missing node id:" << oldNodeId;
+                continue;
+            }
+
+            nodeObject = it.value();
+        }
+
+        else if (nodeVal.isObject()) {
+            nodeObject = nodeVal.toObject();
+        } else {
+            qWarning() << "restoreGroup(): unexpected node entry type:" << nodeVal;
+            continue;
+        }
+
+        NodeId const oldNodeId = jsonValueToNodeId(nodeObject.value("id"));
+
+        NodeGraphicsObject &nodeRef = loadNodeToMap(nodeObject, /*keepOriginalId=*/false);
         NodeId const newNodeId = nodeRef.nodeId();
 
         if (oldNodeId != InvalidNodeId) {
@@ -716,12 +766,12 @@ BasicGraphicsScene::restoreGroup(QJsonObject const &groupJson)
         group_children.push_back(&nodeRef);
     }
 
-    QJsonArray connectionJsonArray = groupJson["connections"].toArray();
-    for (auto connection : connectionJsonArray) {
-        loadConnectionToMap(connection.toObject(), nodeIdMap);
+    QJsonArray connectionJsonArray = groupJson.value("connections").toArray();
+    for (QJsonValue const &connectionVal : connectionJsonArray) {
+        loadConnectionToMap(connectionVal.toObject(), nodeIdMap);
     }
 
-    return std::make_pair(createGroup(group_children, groupJson["name"].toString()), IDsMap);
+    return std::make_pair(createGroup(group_children, groupJson.value("name").toString()), IDsMap);
 }
 
 std::unordered_map<GroupId, std::shared_ptr<NodeGroup>> const &BasicGraphicsScene::groups() const
@@ -853,17 +903,28 @@ std::weak_ptr<NodeGroup> BasicGraphicsScene::loadGroupFile()
 
     if (!file.open(QIODevice::ReadOnly)) {
         qDebug() << "Error loading group file!";
+        return std::weak_ptr<NodeGroup>();
     }
 
     QDir d = QFileInfo(fileName).absoluteDir();
-    QString absolute = d.absolutePath();
-    QDir::setCurrent(absolute);
+    QDir::setCurrent(d.absolutePath());
 
     QByteArray wholeFile = file.readAll();
-
     const QJsonObject fileJson = QJsonDocument::fromJson(wholeFile).object();
 
-    return restoreGroup(fileJson).first;
+    QHash<NodeId, QJsonObject> nodeById;
+
+    QJsonArray nodesArr = fileJson.value("nodes").toArray();
+    nodeById.reserve(nodesArr.size());
+    for (QJsonValue const &v : nodesArr) {
+        QJsonObject o = v.toObject();
+        NodeId id = jsonValueToNodeId(o.value("id"));
+        if (id != InvalidNodeId) {
+            nodeById.insert(id, o);
+        }
+    }
+
+    return restoreGroup(fileJson, nodeById).first;
 }
 
 GroupId BasicGraphicsScene::nextGroupId()
@@ -882,6 +943,31 @@ GroupId BasicGraphicsScene::nextGroupId()
     GroupId const newId = _nextGroupId;
     ++_nextGroupId;
     return newId;
+}
+
+void BasicGraphicsScene::syncGroupDataToGraphModel()
+{
+    auto *dataFlowModel = dynamic_cast<DataFlowGraphModel *>(&_graphModel);
+    if (!dataFlowModel)
+        return;
+
+    std::vector<DataFlowGraphModel::GroupData> groupsData;
+    groupsData.reserve(_groups.size());
+
+    for (auto const &[groupId, groupPtr] : _groups) {
+        if (!groupPtr)
+            continue;
+
+        DataFlowGraphModel::GroupData groupData;
+        groupData.id = groupId;
+        groupData.name = groupPtr->name();
+        groupData.nodeIds = groupPtr->nodeIDs();
+        groupData.locked = groupPtr->groupGraphicsObject().locked();
+
+        groupsData.push_back(std::move(groupData));
+    }
+
+    dataFlowModel->setGroups(std::move(groupsData));
 }
 
 } // namespace QtNodes

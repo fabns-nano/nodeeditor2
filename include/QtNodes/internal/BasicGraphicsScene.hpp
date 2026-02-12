@@ -145,7 +145,7 @@ public:
      * between old and new nodes.
      */
     std::pair<std::weak_ptr<NodeGroup>, std::unordered_map<GroupId, GroupId>> restoreGroup(
-        QJsonObject const &groupJson);
+        QJsonObject const &groupJson, QHash<NodeId, QJsonObject> const &nodeById);
 
     /**
      * @brief Returns a const reference to the mapping of existing groups.
@@ -287,6 +287,8 @@ Q_SIGNALS:
     void zoomFitSelectedClicked();
 
 private:
+    void syncGroupDataToGraphModel();
+
     /**
      * @brief Creates Node and Connection graphics objects.
      * 
