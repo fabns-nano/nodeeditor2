@@ -449,31 +449,4 @@ void DefaultNodePainter::drawProgressValue(QPainter *painter, NodeGraphicsObject
     painter->setFont(font);
 }
 
-void DefaultNodePainter::drawProgressValue(QPainter *painter, NodeGraphicsObject &ngo) const
-{
-    AbstractGraphModel &model = ngo.graphModel();
-    NodeId const nodeId = ngo.nodeId();
-    AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
-
-    QString const nodeProgress = model.nodeData(nodeId, NodeRole::ProgressValue).toString();
-
-    QFont font = painter->font();
-    font.setBold(true);
-    font.setPointSize(5);
-    auto rect = QFontMetrics(font).boundingRect(nodeProgress);
-
-    QSize size = geometry.size(nodeId);
-    QPointF position(rect.width() / 4.0, size.height() - 0.5 * rect.height());
-
-    QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
-    NodeStyle nodeStyle(json.object());
-
-    painter->setFont(font);
-    painter->setPen(nodeStyle.FontColor);
-    painter->drawText(position, nodeProgress);
-
-    font.setBold(false);
-    painter->setFont(font);
-}
-
 } // namespace QtNodes
