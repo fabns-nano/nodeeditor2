@@ -655,18 +655,18 @@ void DataFlowGraphModel::loadNode(QJsonObject const &nodeJson)
 
         _models[restoredNodeId] = std::move(model);
 
+        auto *restoredModel = _models[restoredNodeId].get();
+        _labels[restoredNodeId] = nodeJson["label"].toString(restoredModel->label());
+        _labelsVisible[restoredNodeId] = nodeJson.contains("labelVisible")
+                                             ? nodeJson["labelVisible"].toBool()
+                                             : restoredModel->labelVisible();
+
         Q_EMIT nodeCreated(restoredNodeId);
 
         QJsonObject posJson = nodeJson["position"].toObject();
         QPointF const pos(posJson["x"].toDouble(), posJson["y"].toDouble());
 
         setNodeData(restoredNodeId, NodeRole::Position, pos);
-
-        auto *restoredModel = _models[restoredNodeId].get();
-        _labels[restoredNodeId] = nodeJson["label"].toString(restoredModel->label());
-        _labelsVisible[restoredNodeId] = nodeJson.contains("labelVisible")
-                                             ? nodeJson["labelVisible"].toBool()
-                                             : restoredModel->labelVisible();
 
         restoredModel->load(internalDataJson);
     } else {
