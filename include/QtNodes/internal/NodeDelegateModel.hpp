@@ -209,7 +209,7 @@ private:
 
     QString _progressValue{QString()};
 
-    NodeProcessingStatus _processingStatus{NodeProcessingStatus::NoStatus};
+    NodeProcessingStatus _processingStatus{NodeProcessingStatus::Empty};
 };
 
 } // namespace QtNodes
