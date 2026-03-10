@@ -2,12 +2,12 @@
 
 #include "BasicGraphicsScene.hpp"
 #include "ConnectionGraphicsObject.hpp"
+#include "DataFlowGraphModel.hpp"
 #include "Definitions.hpp"
+#include "GroupGraphicsObject.hpp"
 #include "NodeGraphicsObject.hpp"
 #include "StyleCollection.hpp"
 #include "UndoCommands.hpp"
-
-#include <QtWidgets/QLineEdit>
 
 #include <QtWidgets/QGraphicsScene>
 
@@ -26,12 +26,15 @@
 #include <cmath>
 
 using QtNodes::BasicGraphicsScene;
+using QtNodes::DataFlowGraphModel;
 using QtNodes::GraphicsView;
+using QtNodes::NodeGraphicsObject;
 
 GraphicsView::GraphicsView(QWidget *parent)
     : QGraphicsView(parent)
     , _clearSelectionAction(Q_NULLPTR)
     , _deleteSelectionAction(Q_NULLPTR)
+    , _cutSelectionAction(Q_NULLPTR)
     , _duplicateSelectionAction(Q_NULLPTR)
     , _copySelectionAction(Q_NULLPTR)
     , _pasteAction(Q_NULLPTR)
@@ -78,6 +81,20 @@ QAction *GraphicsView::deleteSelectionAction() const
 void GraphicsView::setScene(BasicGraphicsScene *scene)
 {
     QGraphicsView::setScene(scene);
+    if (!scene) {
+        // Clear actions.
+        delete _clearSelectionAction;
+        delete _deleteSelectionAction;
+        delete _duplicateSelectionAction;
+        delete _copySelectionAction;
+        delete _pasteAction;
+        _clearSelectionAction = nullptr;
+        _deleteSelectionAction = nullptr;
+        _duplicateSelectionAction = nullptr;
+        _copySelectionAction = nullptr;
+        _pasteAction = nullptr;
+        return;
+    }
 
     {
         // setup actions
@@ -102,6 +119,21 @@ void GraphicsView::setScene(BasicGraphicsScene *scene)
                 &GraphicsView::onDeleteSelectedObjects);
 
         addAction(_deleteSelectionAction);
+    }
+
+    {
+        delete _cutSelectionAction;
+        _cutSelectionAction = new QAction(QStringLiteral("Cut Selection"), this);
+        _cutSelectionAction->setShortcutContext(Qt::ShortcutContext::WidgetShortcut);
+        _cutSelectionAction->setShortcut(QKeySequence(QKeySequence::Cut));
+        _cutSelectionAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_X));
+        _cutSelectionAction->setAutoRepeat(false);
+        connect(_cutSelectionAction, &QAction::triggered, [this] {
+            onCopySelectedObjects();
+            onDeleteSelectedObjects();
+        });
+
+        addAction(_cutSelectionAction);
     }
 
     {
@@ -169,18 +201,38 @@ void GraphicsView::centerScene()
 
 void GraphicsView::contextMenuEvent(QContextMenuEvent *event)
 {
-    if (itemAt(event->pos())) {
-        QGraphicsView::contextMenuEvent(event);
-        return;
+    QGraphicsView::contextMenuEvent(event);
+    QMenu *menu = nullptr;
+    const QPointF scenePos = mapToScene(event->pos());
+
+    auto clickedItems = items(event->pos());
+
+    for (QGraphicsItem *item : clickedItems) {
+        if (auto *nodeItem = qgraphicsitem_cast<NodeGraphicsObject *>(item)) {
+            Q_UNUSED(nodeItem);
+            menu = nodeScene()->createStdMenu(scenePos);
+            break;
+        }
+
+        if (auto *groupItem = qgraphicsitem_cast<GroupGraphicsObject *>(item)) {
+            menu = nodeScene()->createGroupMenu(scenePos, groupItem);
+            break;
+        }
     }
 
-    auto const scenePos = mapToScene(event->pos());
-
-    QMenu *menu = nodeScene()->createSceneMenu(scenePos);
+    if (!menu) {
+        if (!clickedItems.empty()) {
+            menu = nodeScene()->createStdMenu(scenePos);
+        } else {
+            menu = nodeScene()->createSceneMenu(scenePos);
+        }
+    }
 
     if (menu) {
         menu->exec(event->globalPos());
     }
+
+    return;
 }
 
 void GraphicsView::wheelEvent(QWheelEvent *event)
@@ -277,12 +329,17 @@ void GraphicsView::setupScale(double scale)
 
 void GraphicsView::onDeleteSelectedObjects()
 {
+    if (!nodeScene())
+        return;
+
     nodeScene()->undoStack().push(new DeleteCommand(nodeScene()));
 }
 
 void GraphicsView::onDuplicateSelectedObjects()
 {
-    qDebug() << "ON DUPLICATE";
+    if (!nodeScene())
+        return;
+
     QPointF const pastePosition = scenePastePosition();
 
     nodeScene()->undoStack().push(new CopyCommand(nodeScene()));
@@ -291,11 +348,17 @@ void GraphicsView::onDuplicateSelectedObjects()
 
 void GraphicsView::onCopySelectedObjects()
 {
+    if (!nodeScene())
+        return;
+
     nodeScene()->undoStack().push(new CopyCommand(nodeScene()));
 }
 
 void GraphicsView::onPasteObjects()
 {
+    if (!nodeScene())
+        return;
+
     QPointF const pastePosition = scenePastePosition();
     nodeScene()->undoStack().push(new PasteCommand(nodeScene(), pastePosition));
 }
@@ -303,73 +366,6 @@ void GraphicsView::onPasteObjects()
 void GraphicsView::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
-    case Qt::Key_F2: {
-        BasicGraphicsScene *sc = nodeScene();
-
-        if (sc) {
-            QList<QGraphicsItem *> items = sc->selectedItems();
-            NodeGraphicsObject *ngo = nullptr;
-            for (QGraphicsItem *it : items) {
-                ngo = qgraphicsitem_cast<NodeGraphicsObject *>(it);
-
-                if (ngo)
-                    break;
-            }
-
-            if (ngo) {
-                bool const labelEditable
-                    = sc->graphModel().nodeData(ngo->nodeId(), NodeRole::LabelEditable).toBool();
-
-                if (!labelEditable)
-                    break;
-
-                if (!_labelEdit) {
-                    _labelEdit = new QLineEdit(this);
-                    _labelEdit->setMaxLength(32);
-
-                    connect(_labelEdit, &QLineEdit::editingFinished, [this]() {
-                        if (_editingNodeId != InvalidNodeId) {
-                            nodeScene()->graphModel().setNodeData(_editingNodeId,
-                                                                  NodeRole::LabelVisible,
-                                                                  true);
-                            nodeScene()->graphModel().setNodeData(_editingNodeId,
-                                                                  NodeRole::Label,
-                                                                  _labelEdit->text());
-                        }
-
-                        _labelEdit->hide();
-                        _editingNodeId = InvalidNodeId;
-                    });
-                }
-
-                _editingNodeId = ngo->nodeId();
-
-                sc->graphModel().setNodeData(_editingNodeId, NodeRole::LabelVisible, true);
-
-                AbstractNodeGeometry &geom = sc->nodeGeometry();
-                QPointF labelPos = geom.labelPosition(_editingNodeId);
-                QPointF scenePos = ngo->mapToScene(labelPos);
-                QSize sz = _labelEdit->sizeHint();
-                QPoint viewPos = mapFromScene(scenePos);
-                _labelEdit->move(viewPos.x() - sz.width() / 2, viewPos.y() - sz.height() / 2);
-                bool visible
-                    = sc->graphModel().nodeData(_editingNodeId, NodeRole::LabelVisible).toBool();
-                QString current
-                    = sc->graphModel().nodeData(_editingNodeId, NodeRole::Label).toString();
-
-                if (!visible && current.isEmpty())
-                    _labelEdit->clear();
-                else
-                    _labelEdit->setText(current);
-                _labelEdit->resize(sz);
-                _labelEdit->show();
-                _labelEdit->setFocus();
-                return;
-            }
-        }
-    }
-
-    break;
     case Qt::Key_Shift:
         setDragMode(QGraphicsView::RubberBandDrag);
         break;
@@ -405,6 +401,10 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
 void GraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
     QGraphicsView::mouseMoveEvent(event);
+
+    if (!scene())
+        return;
+
     if (scene()->mouseGrabberItem() == nullptr && event->buttons() == Qt::LeftButton) {
         // Make sure shift is not being pressed
         if ((event->modifiers() & Qt::ShiftModifier) == 0) {
@@ -476,4 +476,23 @@ QPointF GraphicsView::scenePastePosition()
         origin = viewRect.center();
 
     return mapToScene(origin);
+}
+
+void GraphicsView::zoomFitAll()
+{
+    fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
+}
+
+void GraphicsView::zoomFitSelected()
+{
+    if (scene()->selectedItems().count() > 0) {
+        QRectF unitedBoundingRect{};
+
+        for (QGraphicsItem *item : scene()->selectedItems()) {
+            unitedBoundingRect = unitedBoundingRect.united(
+                item->mapRectToScene(item->boundingRect()));
+        }
+
+        fitInView(unitedBoundingRect, Qt::KeepAspectRatio);
+    }
 }

@@ -11,12 +11,12 @@
 #include <QJsonObject>
 
 #include <memory>
-#include <unordered_map>
-#include <QString>
 
 namespace QtNodes {
 
-class NODE_EDITOR_PUBLIC DataFlowGraphModel : public AbstractGraphModel, public Serializable
+class NODE_EDITOR_PUBLIC DataFlowGraphModel
+    : public AbstractGraphModel
+    , public Serializable
 {
     Q_OBJECT
 
@@ -44,7 +44,6 @@ public:
     bool connectionExists(ConnectionId const connectionId) const override;
 
     NodeId addNode(QString const nodeType) override;
-
 
     bool connectionPossible(ConnectionId const connectionId) const override;
 
@@ -76,7 +75,6 @@ public:
     QJsonObject saveNode(NodeId const) const override;
 
     void loadNode(QJsonObject const &nodeJson) override;
-
 
     // From Serializable
     QJsonObject save() const override;
@@ -139,9 +137,6 @@ private:
     std::unordered_set<ConnectionId> _connectivity;
 
     mutable std::unordered_map<NodeId, NodeGeometryData> _nodeGeometryData;
-
-    std::unordered_map<NodeId, QString> _labels;
-    std::unordered_map<NodeId, bool> _labelsVisible;
 };
 
 } // namespace QtNodes
