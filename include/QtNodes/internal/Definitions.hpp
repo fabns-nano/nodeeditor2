@@ -19,9 +19,8 @@ Q_NAMESPACE_EXPORT(NODE_EDITOR_PUBLIC)
 #endif
 
     /**
-<<<<<<< HEAD
- * Constants used for fetching QVariant data from GraphModel.
- */
+     * Constants used for fetching QVariant data from GraphModel.
+     */
 
     enum class NodeRole {
         Type = 0,              ///< Type of the current node, usually a string.
