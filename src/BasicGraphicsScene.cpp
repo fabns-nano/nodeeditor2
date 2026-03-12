@@ -426,6 +426,33 @@ void BasicGraphicsScene::onModelReset()
     traverseGraphAndPopulateGraphicsObjects();
 }
 
+void BasicGraphicsScene::freezeModelAndConnections(bool isFreeze)
+{
+    for (QGraphicsItem *item : selectedItems()) {
+        if (auto n = qgraphicsitem_cast<NodeGraphicsObject *>(item)) {
+            int portCount = graphModel().nodeData(n->nodeId(), NodeRole::OutPortCount).toInt();
+            for (int i = 0; i < portCount; i++) {
+                auto graphConnections = graphModel().connections(n->nodeId(),
+                                                                 QtNodes::PortType::Out,
+                                                                 QtNodes::PortIndex(i));
+
+                for (auto const &c : graphConnections) {
+                    if (auto *cgo = connectionGraphicsObject(c)) {
+                        cgo->connectionState().setFrozen(isFreeze);
+                        cgo->update();
+                    }
+                }
+            }
+
+            if (auto *dfModel = dynamic_cast<DataFlowGraphModel *>(&graphModel())) {
+                if (auto *delegate = dfModel->delegateModel<NodeDelegateModel>(n->nodeId())) {
+                    delegate->setFrozenState(isFreeze);
+                }
+            }
+        }
+    }
+}
+
 std::weak_ptr<NodeGroup> BasicGraphicsScene::createGroup(std::vector<NodeGraphicsObject *> &nodes,
                                                          QString groupName,
                                                          GroupId groupId)
@@ -891,33 +918,6 @@ void BasicGraphicsScene::saveGroupFile(GroupId groupID)
     }
 }
 
-void BasicGraphicsScene::freezeModelAndConnections(bool isFreeze)
-{
-    for (QGraphicsItem *item : selectedItems()) {
-        if (auto n = qgraphicsitem_cast<NodeGraphicsObject *>(item)) {
-            int portCount = graphModel().nodeData(n->nodeId(), NodeRole::OutPortCount).toInt();
-            for (int i = 0; i < portCount; i++) {
-                auto graphConnections = graphModel().connections(n->nodeId(),
-                                                                 QtNodes::PortType::Out,
-                                                                 QtNodes::PortIndex(i));
-
-                for (auto const &c : graphConnections) {
-                    if (auto *cgo = connectionGraphicsObject(c)) {
-                        cgo->connectionState().setFrozen(isFreeze);
-                        cgo->update();
-                    }
-                }
-            }
-
-            if (auto *dfModel = dynamic_cast<DataFlowGraphModel *>(&graphModel())) {
-                if (auto *delegate = dfModel->delegateModel<NodeDelegateModel>(n->nodeId())) {
-                    delegate->setFrozenState(isFreeze);
-                }
-            }
-        }
-    }
-}
-
 std::weak_ptr<NodeGroup> BasicGraphicsScene::loadGroupFile()
 {
     if (!_groupingEnabled)
@@ -1001,4 +1001,5 @@ void BasicGraphicsScene::syncGroupDataToGraphModel()
 
     dataFlowModel->setGroups(std::move(groupsData));
 }
+
 } // namespace QtNodes

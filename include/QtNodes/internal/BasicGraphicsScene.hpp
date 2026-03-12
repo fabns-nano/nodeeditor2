@@ -10,7 +10,6 @@
 #include "QUuidStdHash.hpp"
 #include "UndoCommands.hpp"
 #include <QtCore/QJsonObject>
-
 #include <QtCore/QUuid>
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QMenu>
@@ -253,6 +252,12 @@ public:
     virtual QMenu *createSceneMenu(QPointF const scenePos);
 
     /**
+     * @brief Freezes and unfreezes the model and connections of the selected nodes.
+     * @param isFreeze reference for freezing or unfreezing the model and connections of the selected nodes.
+     */
+    void freezeModelAndConnections(bool isFreeze);
+
+    /**
      * @brief Creates the default menu when a node is selected.
      */
     QMenu *createStdMenu(QPointF const scenePos);
@@ -263,7 +268,6 @@ public:
      */
     QMenu *createGroupMenu(QPointF const scenePos, GroupGraphicsObject *groupGo);
 
-    void freezeModelAndConnections(bool isFreeze);
 Q_SIGNALS:
     void modified(BasicGraphicsScene *);
     void nodeMoved(NodeId const nodeId, QPointF const &newLocation);
