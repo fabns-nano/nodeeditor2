@@ -719,6 +719,7 @@ void BasicGraphicsScene::loadConnectionToMap(QJsonObject const &connectionJson,
 std::pair<std::weak_ptr<NodeGroup>, std::unordered_map<GroupId, GroupId>>
 BasicGraphicsScene::restoreGroup(QJsonObject const &groupJson,
                                  QHash<NodeId, QJsonObject> const &nodeById)
+
 {
     if (!_groupingEnabled)
         return {std::weak_ptr<NodeGroup>(), {}};
@@ -757,6 +758,7 @@ BasicGraphicsScene::restoreGroup(QJsonObject const &groupJson,
         NodeId const oldNodeId = jsonValueToNodeId(nodeObject.value("id"));
 
         NodeGraphicsObject &nodeRef = loadNodeToMap(nodeObject, /*keepOriginalId=*/false);
+
         NodeId const newNodeId = nodeRef.nodeId();
 
         if (oldNodeId != InvalidNodeId) {
@@ -819,6 +821,7 @@ QMenu *BasicGraphicsScene::createStdMenu(QPointF const scenePos)
     cutAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_X));
 
     connect(copyAction, &QAction::triggered, this, &BasicGraphicsScene::onCopySelectedObjects);
+
     connect(cutAction, &QAction::triggered, [this] {
         onCopySelectedObjects();
         onDeleteSelectedObjects();
@@ -998,5 +1001,4 @@ void BasicGraphicsScene::syncGroupDataToGraphModel()
 
     dataFlowModel->setGroups(std::move(groupsData));
 }
-
 } // namespace QtNodes

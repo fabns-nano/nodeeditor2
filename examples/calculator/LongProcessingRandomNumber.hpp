@@ -1,14 +1,14 @@
 #pragma once
 
-#include <QtNodes/NodeDelegateModel>
 #include <QTimer>
-#include <QtCore/QObject>
 #include <QtCore/QElapsedTimer>
-#include <QtWidgets/QLabel>
+#include <QtCore/QObject>
 #include <QtCore/QRandomGenerator64>
+#include <QtNodes/NodeDelegateModel>
+#include <QtWidgets/QLabel>
 
-#include "MathOperationDataModel.hpp"
 #include "DecimalData.hpp"
+#include "MathOperationDataModel.hpp"
 
 /// The model generates a random value in a long processing schema, as it should demonstrate
 /// the usage of the NodeProcessingStatus and the ProgressValue functionality.
@@ -16,13 +16,12 @@
 class LongProcessingRandomNumber : public MathOperationDataModel
 {
 public:
-    LongProcessingRandomNumber() {
+    LongProcessingRandomNumber()
+    {
         this->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Empty);
 
-
         QObject::connect(this, &NodeDelegateModel::computingStarted, this, [this]() {
-            this->setNodeProcessingStatus(
-                QtNodes::NodeProcessingStatus::Processing);
+            this->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Processing);
 
             setProgressValue(QString{"0%"});
             emit requestNodeUpdate();
@@ -55,14 +54,14 @@ public:
 
             setProgressValue(QString());
 
-            this->setNodeProcessingStatus(
-                QtNodes::NodeProcessingStatus::Updated);
+            this->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Updated);
 
             emit requestNodeUpdate();
         });
     }
 
-    virtual ~LongProcessingRandomNumber() {
+    virtual ~LongProcessingRandomNumber()
+    {
         if (_progressTimer) {
             _progressTimer->stop();
             delete _progressTimer;

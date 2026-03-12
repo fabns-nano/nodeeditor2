@@ -25,11 +25,49 @@
 #include <QtCore/QJsonParseError>
 #include <QtCore/QJsonValue>
 #include <QtCore/QMimeData>
+#include <QtCore/QUuid>
 #include <QtCore/QtGlobal>
 
 #include <stdexcept>
 #include <utility>
 #include <vector>
+
+namespace {
+
+using QtNodes::GroupId;
+using QtNodes::InvalidGroupId;
+
+GroupId jsonValueToGroupId(QJsonValue const &value)
+{
+    if (value.isDouble()) {
+        return static_cast<GroupId>(value.toInt());
+    }
+
+    if (value.isString()) {
+        auto const textValue = value.toString();
+
+        bool ok = false;
+        auto const numericValue = textValue.toULongLong(&ok, 10);
+        if (ok) {
+            return static_cast<GroupId>(numericValue);
+        }
+
+        QUuid uuidValue(textValue);
+        if (!uuidValue.isNull()) {
+            auto const bytes = uuidValue.toRfc4122();
+            if (bytes.size() >= static_cast<int>(sizeof(quint32))) {
+                QDataStream stream(bytes);
+                quint32 value32 = 0U;
+                stream >> value32;
+                return static_cast<GroupId>(value32);
+            }
+        }
+    }
+
+    return InvalidGroupId;
+}
+
+} // namespace
 
 namespace QtNodes {
 
@@ -204,6 +242,7 @@ bool DataFlowGraphicsScene::save() const
         if (file.open(QIODevice::WriteOnly)) {
             std::vector<DataFlowGraphModel::GroupData> groupsData;
             groupsData.reserve(groups().size());
+
             for (auto const &[groupId, groupPtr] : groups()) {
                 if (!groupPtr)
                     continue;

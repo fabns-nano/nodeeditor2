@@ -2,7 +2,6 @@
 
 #include "BasicGraphicsScene.hpp"
 #include "ConnectionGraphicsObject.hpp"
-#include "Definitions.hpp"
 #include "DataFlowGraphModel.hpp"
 #include "Definitions.hpp"
 #include "GroupGraphicsObject.hpp"

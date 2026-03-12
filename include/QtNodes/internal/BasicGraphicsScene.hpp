@@ -264,7 +264,6 @@ public:
     QMenu *createGroupMenu(QPointF const scenePos, GroupGraphicsObject *groupGo);
 
     void freezeModelAndConnections(bool isFreeze);
-
 Q_SIGNALS:
     void modified(BasicGraphicsScene *);
     void nodeMoved(NodeId const nodeId, QPointF const &newLocation);
@@ -338,7 +337,6 @@ public Q_SLOTS:
      * @brief Slot called to trigger the delete command action.
      */
     void onDeleteSelectedObjects() { undoStack().push(new DeleteCommand(this)); }
-
     /**
      * @brief Slot called to trigger the paste command action.
      */

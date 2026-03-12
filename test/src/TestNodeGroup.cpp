@@ -312,7 +312,7 @@ TEST_CASE("Saving and restoring node groups", "[node-group]")
 
         auto connectionObject = connectionsJson.first().toObject();
         CHECK(static_cast<NodeId>(connectionObject["outNodeId"].toInt()) == nodeIds[0]);
-        CHECK(static_cast<NodeId>(connectionObject["intNodeId"].toInt()) == nodeIds[1]);
+        CHECK(static_cast<NodeId>(connectionObject["inNodeId"].toInt()) == nodeIds[1]);
     }
 
     SECTION("Restoring a group from serialized data")
